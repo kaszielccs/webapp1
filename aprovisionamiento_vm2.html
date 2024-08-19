@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure VMware VM Deployment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <h1>Deploy a New VM on Azure VMware Services</h1>
+    <form action="/" method="post">
+        <label for="vm_name">VM Name:</label>
+        <input type="text" id="vm_name" name="vm_name" required><br><br>
+
+        <label for="cpu">CPU (VM Size):</label>
+        <input type="text" id="cpu" name="cpu" required><br><br>
+
+        <label for="memory">Memory (in GB):</label>
+        <input type="text" id="memory" name="memory" required><br><br>
+
+        <label for="disk_size">Disk Size (in GB):</label>
+        <input type="text" id="disk_size" name="disk_size" required><br><br>
+
+        <label for="os_type">OS Type:</label>
+        <select id="os_type" name="os_type">
+            <option value="Canonical-UbuntuServer-18.04-LTS">Ubuntu 18.04</option>
+            <option value="MicrosoftWindowsServer-WindowsServer-2019-Datacenter">Windows Server 2019</option>
+            <!-- Agregar más opciones según sea necesario -->
+        </select><br><br>
+
+        <input type="submit" value="Generate Script">
+    </form>
+</body>
+</html>
