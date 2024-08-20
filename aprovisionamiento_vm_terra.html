@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Máquina Virtual con Terraform</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl">
+        <div class="md:flex">
+            <div class="p-8">
+                <div class="uppercase tracking-wide text-sm text-indigo-500 font-semibold">Solicitud de Máquina Virtual con Terraform</div>
+                <form id="vmForm" class="mt-4">
+                    <div class="mb-4">
+                        <label for="vmCount" class="block text-gray-700 text-sm font-bold mb-2">Cantidad de servidores:</label>
+                        <input type="number" id="vmCount" name="vmCount" min="1" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="mb-4">
+                        <label for="os" class="block text-gray-700 text-sm font-bold mb-2">Sistema Operativo:</label>
+                        <select id="os" name="os" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="">Seleccione SO</option>
+                            <option value="Windows">Windows Server</option>
+                            <option value="Linux">Linux</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="storage" class="block text-gray-700 text-sm font-bold mb-2">Almacenamiento (GB):</label>
+                        <input type="number" id="storage" name="storage" min="1" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="mb-4">
+                        <label for="memory" class="block text-gray-700 text-sm font-bold mb-2">Memoria RAM (GB):</label>
+                        <input type="number" id="memory" name="memory" min="1" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="mb-4">
+                        <label for="software" class="block text-gray-700 text-sm font-bold mb-2">Software adicional:</label>
+                        <textarea id="software" name="software" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <button type="submit" id="downloadButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            Generar y Descargar Script Terraform
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('vmForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const vmSpec = Object.fromEntries(formData.entries());
+
+            const terraformScript = generateTerraformScript(vmSpec);
+            
+            const blob = new Blob([terraformScript], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            document.getElementById('downloadButton').href = url;
+            document.getElementById('downloadButton').download = "terraform_script.tf";
+        });
+
+        function generateTerraformScript(vmSpec) {
+            return `
+provider "azurerm" {
+  features = {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "${vmSpec.vmName || 'myResourceGroup'}"
+  location = "East US"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "myVnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "mySubnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_network_interface" "example" {
+  name                = "myNIC"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.example.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "example" {
+  name                  = "myVM"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  network_interface_ids = [azurerm_network_interface.example.id]
+  vm_size               = "Standard_DS1_v2"
+
+  storage_os_disk {
+    name              = "myOsDisk"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = "hostname"
+    admin_username = "azureuser"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  source_image_reference {
+    publisher = "${vmSpec.os === 'Windows' ? 'MicrosoftWindowsServer' : 'Canonical'}"
+    offer     = "${vmSpec.os === 'Windows' ? 'WindowsServer' : 'UbuntuServer'}"
+    sku       = "${vmSpec.os === 'Windows' ? '2019-Datacenter' : '18.04-LTS'}"
+    version   = "latest"
+  }
+
+  tags = {
+    environment = "TerraformExample"
+  }
+}
+            `;
+        }
+    </script>
+</body>
+</html>
