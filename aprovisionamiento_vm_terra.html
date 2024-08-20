@@ -22,7 +22,7 @@
             <label for="vm-count">Número de Servidores:</label>
             <input type="number" id="vm-count" name="vm-count" class="border rounded px-3 py-2 w-full" min="1" required>
           </div>
-          <div id="server-fields"></div>
+          <div id="server-fields" class="mt-4"></div>
           <div>
             <label for="additional-software">Software Adicional:</label>
             <input type="text" id="additional-software" name="additional-software" class="border rounded px-3 py-2 w-full">
@@ -114,133 +114,164 @@
 
       function updateServerFields(count) {
         serverFieldsContainer.innerHTML = '';
-	      serverFieldsContainer.innerHTML += `
-		<div class="table-container">
-		<table>
-		<thead>
-             		<tr>
-				<label>Nombre del Servidor:</label>
-			 </tr>
-			 <tr>
-				<label>Sistema Operativo: </label>
-			 </tr>
-			 <tr>
-				<label>Almacenamiento (GB):</label>
-			 </tr>
-			 <tr>
-				<label>Memoria RAM (GB):</label>
-			 </tr>
-			 <tr>
-				<label>Cantidad de Núcleos:</label>
-			 </tr>
-		</thead>
-		<tbody>
-  			`;
-        for (let i = 1; i <= count; i++) {
+        if (count > 0) {
           serverFieldsContainer.innerHTML += `
-			<div class="server-row">
-			<tr>
-			<td>
-              <div>
-                <!%--<label for="server-name-${i}">Nombre del Servidor:</label>-->
-                <input type="text" id="server-name-${i}" name="server-name-${i}" class="border rounded px-3 py-2 w-full">
-              </div>
-			</td>
-			<td>
-              <div>
-                <!%--<label for="os-type-${i}">Sistema Operativo:</label>-->
-                <select id="os-type-${i}" name="os-type-${i}" class="border rounded px-3 py-2 w-full">
-                  <option value="">Seleccionar SO</option>
-                  <option value="windows">Windows Server</option>
-                  <option value="linux">Linux</option>
-                </select>
-              </div>
-			</td>
-			<td>
-              <div>
-                <!%--<label for="storage-size-${i}">Almacenamiento (GB):</label>-->
-                <input type="number" id="storage-size-${i}" name="storage-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
-              </div>
-			</td>
-			<td>
-              <div>
-                <!%--<label for="ram-size-${i}">Memoria RAM (GB):</label>-->
-                <input type="number" id="ram-size-${i}" name="ram-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
-              </div>
-			</td>
-			<td>
-              <div>
-                 <!%--<label for="cores-${i}">Cantidad de Núcleos:</label>-->
-                <input type="number" id="cores-${i}" name="cores-${i}" class="border rounded px-3 py-2 w-full" min="1">
-              </div>
-			</td>
-			</tr>
-            </div>
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre del Servidor</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sistema Operativo</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Almacenamiento (GB)</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Memoria RAM (GB)</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad de Núcleos</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+          `;
+          
+          for (let i = 1; i <= count; i++) {
+            serverFieldsContainer.innerHTML += `
+              <tr class="server-row">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <input type="text" id="server-name-${i}" name="server-name-${i}" class="border rounded px-3 py-2 w-full">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <select id="os-type-${i}" name="os-type-${i}" class="border rounded px-3 py-2 w-full">
+                    <option value="">Seleccionar SO</option>
+                    <option value="windows">Windows Server</option>
+                    <option value="linux">Linux</option>
+                  </select>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <input type="number" id="storage-size-${i}" name="storage-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <input type="number" id="ram-size-${i}" name="ram-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <input type="number" id="cores-${i}" name="cores-${i}" class="border rounded px-3 py-2 w-full" min="1">
+                </td>
+              </tr>
+            `;
+          }
+
+          serverFieldsContainer.innerHTML += `
+              </tbody>
+            </table>
           `;
         }
-		serverFieldsContainer.innerHTML += `</tbody></table>`;
       }
 
       function generateTerraformConfig(vmCount, serverConfigs, additionalSoftware) {
-        let serverResources = '';
-        serverConfigs.forEach((config, index) => {
-          serverResources += `
-resource "azurerm_virtual_machine" "vm_${index}" {
-  name = "${config.name}"
-  resource_group_name = "<RESOURCE_GROUP_NAME>"
-  location = "<LOCATION>"
-  size = "Standard_DS${config.cores}_v2"
-  network_interface_ids = ["<NETWORK_INTERFACE_ID>"]
+        let terraformConfig = `
+provider "azurerm" {
+  features = {}
+}
+
+resource "azurerm_resource_group" "rg" {
+  name     = "mi-grupo-recursos"
+  location = "East US"
+}
+
+`;
+
+        serverConfigs.forEach((server, index) => {
+          terraformConfig += `
+resource "azurerm_virtual_network" "vnet_${index + 1}" {
+  name                = "${server.name}-vnet"
+  address_space       = ["10.0.${index}.0/16"]
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_subnet" "subnet_${index + 1}" {
+  name                 = "${server.name}-subnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet_${index + 1}.name
+  address_prefixes     = ["10.0.${index}.0/24"]
+}
+
+resource "azurerm_network_interface" "nic_${index + 1}" {
+  name                = "${server.name}-nic"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  ip_configuration {
+    name                          = "${server.name}-ipconfig"
+    subnet_id                     = azurerm_subnet.subnet_${index + 1}.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "vm_${index + 1}" {
+  name                  = "${server.name}"
+  location              = azurerm_resource_group.rg.location
+  resource_group_name   = azurerm_resource_group.rg.name
+  network_interface_ids = [azurerm_network_interface.nic_${index + 1}.id]
+  vm_size               = "Standard_DS1_v2"
 
   storage_os_disk {
-    name              = "osdisk-${index + 1}"
+    name              = "${server.name}-osdisk"
     caching           = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-    disk_size_gb      = ${config.storageSize}
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+    disk_size_gb      = ${server.storageSize}
   }
 
   storage_image_reference {
-    publisher = "<PUBLISHER>"
-    offer     = "<OFFER>"
-    sku       = "<SKU>"
+    publisher = "Canonical"
+    offer     = "${server.osType}"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
   os_profile {
-    computer_name  = "${config.name}"
-    admin_username = "<ADMIN_USERNAME>"
-    admin_password = "<ADMIN_PASSWORD>"
+    computer_name  = "${server.name}"
+    admin_username = "adminuser"
+    admin_password = "AdminPassword123!"
   }
 
   os_profile_linux_config {
     disable_password_authentication = false
   }
-  
+
   tags = {
-    environment = "development"
+    environment = "Terraform"
   }
-  
-  # Configura el software adicional si es necesario
 }
-          `;
+
+resource "azurerm_managed_disk" "data_disk_${index + 1}" {
+  name                 = "${server.name}-data-disk"
+  location             = azurerm_resource_group.rg.location
+  resource_group_name  = azurerm_resource_group.rg.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = ${server.storageSize}
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "data_disk_attach_${index + 1}" {
+  managed_disk_id    = azurerm_managed_disk.data_disk_${index + 1}.id
+  virtual_machine_id = azurerm_virtual_machine.vm_${index + 1}.id
+  lun                = 0
+  caching            = "ReadWrite"
+}
+
+`;
         });
 
-        return `
-terraform {
-  required_providers {
-    azurerm = {
-      source = "hashicorp/azurerm"
-      version = "~> 2.0"
-    }
-  }
+        terraformConfig += `
+output "admin_username" {
+  value = azurerm_virtual_machine.vm_1.os_profile.0.admin_username
 }
+`;
 
-provider "azurerm" {
-  features {}
-}
+        if (additionalSoftware) {
+          terraformConfig += `
+# Añadir el siguiente software adicional: ${additionalSoftware}
+`;
+        }
 
-${serverResources}
-        `;
+        return terraformConfig;
       }
     });
   </script>
