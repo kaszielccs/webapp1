@@ -24,22 +24,6 @@
           </div>
           <div id="server-fields"></div>
           <div>
-            <label for="os-type">Sistema Operativo:</label>
-            <select id="os-type" name="os-type" class="border rounded px-3 py-2 w-full" required>
-              <option value="">Seleccionar SO</option>
-              <option value="windows">Windows Server</option>
-              <option value="linux">Linux</option>
-            </select>
-          </div>
-          <div>
-            <label for="storage-size">Almacenamiento (GB):</label>
-            <input type="number" id="storage-size" name="storage-size" class="border rounded px-3 py-2 w-full" min="1" required>
-          </div>
-          <div>
-            <label for="ram-size">Memoria RAM (GB):</label>
-            <input type="number" id="ram-size" name="ram-size" class="border rounded px-3 py-2 w-full" min="1" required>
-          </div>
-          <div>
             <label for="additional-software">Software Adicional:</label>
             <input type="text" id="additional-software" name="additional-software" class="border rounded px-3 py-2 w-full">
           </div>
@@ -103,19 +87,19 @@
 
       generateButton.addEventListener('click', () => {
         const vmCount = parseInt(vmCountInput.value, 10) || 0;
-        const osType = document.getElementById('os-type').value;
-        const storageSize = document.getElementById('storage-size').value;
-        const ramSize = document.getElementById('ram-size').value;
         const additionalSoftware = document.getElementById('additional-software').value;
         
         const serverConfigs = [];
         for (let i = 1; i <= vmCount; i++) {
           const serverName = document.getElementById(`server-name-${i}`).value || `vm-${i}`;
+          const osType = document.getElementById(`os-type-${i}`).value || 'linux';
+          const storageSize = document.getElementById(`storage-size-${i}`).value || 30;
+          const ramSize = document.getElementById(`ram-size-${i}`).value || 2;
           const cores = document.getElementById(`cores-${i}`).value || 1;
-          serverConfigs.push({ name: serverName, cores });
+          serverConfigs.push({ name: serverName, osType, storageSize, ramSize, cores });
         }
 
-        const terraformConfig = generateTerraformConfig(vmCount, osType, storageSize, ramSize, serverConfigs, additionalSoftware);
+        const terraformConfig = generateTerraformConfig(vmCount, serverConfigs, additionalSoftware);
         modalScriptContent.textContent = terraformConfig;
         downloadLink.href = `data:application/octet-stream;charset=utf-8,${encodeURIComponent(terraformConfig)}`;
         downloadLink.download = 'provisionamiento-vm-azure.tf';
@@ -139,6 +123,22 @@
                 <input type="text" id="server-name-${i}" name="server-name-${i}" class="border rounded px-3 py-2 w-full">
               </div>
               <div>
+                <label for="os-type-${i}">Sistema Operativo:</label>
+                <select id="os-type-${i}" name="os-type-${i}" class="border rounded px-3 py-2 w-full">
+                  <option value="">Seleccionar SO</option>
+                  <option value="windows">Windows Server</option>
+                  <option value="linux">Linux</option>
+                </select>
+              </div>
+              <div>
+                <label for="storage-size-${i}">Almacenamiento (GB):</label>
+                <input type="number" id="storage-size-${i}" name="storage-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
+              </div>
+              <div>
+                <label for="ram-size-${i}">Memoria RAM (GB):</label>
+                <input type="number" id="ram-size-${i}" name="ram-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
+              </div>
+              <div>
                 <label for="cores-${i}">Cantidad de Núcleos:</label>
                 <input type="number" id="cores-${i}" name="cores-${i}" class="border rounded px-3 py-2 w-full" min="1">
               </div>
@@ -147,7 +147,7 @@
         }
       }
 
-      function generateTerraformConfig(vmCount, osType, storageSize, ramSize, serverConfigs, additionalSoftware) {
+      function generateTerraformConfig(vmCount, serverConfigs, additionalSoftware) {
         let serverResources = '';
         serverConfigs.forEach((config, index) => {
           serverResources += `
@@ -162,7 +162,7 @@ resource "azurerm_virtual_machine" "vm_${index}" {
     name              = "osdisk-${index + 1}"
     caching           = "ReadWrite"
     storage_account_type = "Standard_LRS"
-    disk_size_gb      = ${storageSize}
+    disk_size_gb      = ${config.storageSize}
   }
 
   storage_image_reference {
