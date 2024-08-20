@@ -1,164 +1,143 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitud de Máquina Virtual</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Azure VM Provisioning Script Generator (Terraform)</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="max-w-7xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8 text-center">Generador de Infraestructura para VM en Azure VMware Services</h1>
-        <div class="flex flex-col md:flex-row gap-8">
-            <!-- Columna izquierda: Formulario -->
-            <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="p-8">
-                    <h2 class="text-xl font-semibold mb-4">Solicitud de Máquina Virtual</h2>
-                    <form id="vmForm" class="space-y-4">
-                        <div>
-                            <label for="vmCount" class="block text-sm font-medium text-gray-700">Cantidad de servidores:</label>
-                            <input type="number" id="vmCount" name="vmCount" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                        </div>
-                        <div>
-                            <label for="os" class="block text-sm font-medium text-gray-700">Sistema Operativo:</label>
-                            <select id="os" name="os" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <option value="">Seleccione SO</option>
-                                <option value="windows">Windows Server 2019</option>
-                                <option value="linux">Ubuntu 20.04</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="storage" class="block text-sm font-medium text-gray-700">Almacenamiento (GB):</label>
-                            <input type="number" id="storage" name="storage" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                        </div>
-                        <div>
-                            <label for="memory" class="block text-sm font-medium text-gray-700">Memoria RAM (GB):</label>
-                            <input type="number" id="memory" name="memory" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                        </div>
-                        <div>
-                            <label for="software" class="block text-sm font-medium text-gray-700">Software adicional:</label>
-                            <textarea id="software" name="software" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
-                        </div>
-                        <div>
-                            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                Generar Infraestructura
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Columna derecha: Instrucciones y información de Terraform -->
-            <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="p-8">
-                    <h2 class="text-xl font-semibold mb-4">Instrucciones de Uso</h2>
-                    <ol class="list-decimal list-inside space-y-2 mb-6">
-                        <li>Completa el formulario de la izquierda con los detalles de la VM deseada.</li>
-                        <li>Haz clic en "Generar Infraestructura" para crear el código de Terraform.</li>
-                        <li>Abre una terminal y navega hasta el directorio donde se guardará el archivo de Terraform.</li>
-                        <li>Ejecuta los siguientes comandos para aplicar la infraestructura en Azure:</li>
-                        <pre class="bg-gray-100 p-2 rounded mt-2 mb-2">
-terraform init
-terraform apply
-                        </pre>
-                        <li>Sigue las instrucciones de Terraform para completar la implementación.</li>
-                    </ol>
-                    <h3 class="text-lg font-semibold mb-2">Acerca del código de Terraform</h3>
-                    <p class="mb-4">
-                        El código de Terraform proporcionado crea una máquina virtual en Azure VMware Services con las siguientes características:
-                    </p>
-                    <ul class="list-disc list-inside space-y-2">
-                        <li>Grupo de recursos: <code>example-rg</code></li>
-                        <li>Cloud privado de Azure VMware: <code>example-private-cloud</code></li>
-                        <li>Cluster: <code>cluster1</code></li>
-                        <li>Plantilla de VM: <code>Windows Server 2019</code> o <code>Ubuntu 20.04</code></li>
-                        <li>CPU: 2 núcleos</li>
-                        <li>Memoria RAM: 8 GB</li>
-                        <li>Almacenamiento: 100 GB</li>
-                    </ul>
-                    <p class="mt-4">
-                        Puedes personalizar este código de Terraform según tus necesidades específicas.
-                    </p>
-                </div>
-            </div>
+<body>
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-center">Azure VM Provisioning Script Generator (Terraform)</h1>
+    <div class="flex flex-col md:flex-row gap-8">
+      <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+          <h2 class="text-xl font-semibold mb-4">Virtual Machine Request</h2>
+          <div>
+            <label for="vm-count">Number of Servers:</label>
+            <input type="number" id="vm-count" name="vm-count" class="border rounded px-3 py-2 w-full" min="1" required>
+          </div>
+          <div>
+            <label for="os-type">Operating System:</label>
+            <select id="os-type" name="os-type" class="border rounded px-3 py-2 w-full" required>
+              <option value="">Select OS</option>
+              <option value="windows">Windows Server</option>
+              <option value="linux">Linux</option>
+            </select>
+          </div>
+          <div>
+            <label for="storage-size">Storage (GB):</label>
+            <input type="number" id="storage-size" name="storage-size" class="border rounded px-3 py-2 w-full" min="1" required>
+          </div>
+          <div>
+            <label for="ram-size">Memory RAM (GB):</label>
+            <input type="number" id="ram-size" name="ram-size" class="border rounded px-3 py-2 w-full" min="1" required>
+          </div>
+          <div>
+            <label for="additional-software">Additional Software:</label>
+            <input type="text" id="additional-software" name="additional-software" class="border rounded px-3 py-2 w-full">
+          </div>
+          <button id="generate-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
+            Generate Script
+          </button>
         </div>
+      </div>
+      <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+          <h2 class="text-xl font-semibold mb-4">Execution Instructions</h2>
+          <ol class="list-decimal list-inside">
+            <li>Generate the script using the form on the left.</li>
+            <li>Copy the generated script or download it as a .tf file.</li>
+            <li>Open your preferred Terraform editor or IDE.</li>
+            <li>Create a new Terraform configuration file and paste the script content.</li>
+            <li>Run <code>terraform init</code> to initialize the Terraform working directory.</li>
+            <li>Run <code>terraform apply</code> to provision the Azure resources.</li>
+          </ol>
+          <div id="downloadSection" class="hidden">
+            <h3 class="text-lg font-semibold mb-2">Download Script</h3>
+            <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Download Terraform Configuration
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
+    <div id="scriptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+      <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Generated Terraform Configuration</h3>
+          <div class="mt-2 px-7 py-3">
+            <pre id="modalScriptContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
+          </div>
+          <div class="items-center px-4 py-3">
+            <button id="closeModal" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        document.getElementById('vmForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const vmSpec = Object.fromEntries(formData.entries());
-            
-            // Generar el código de Terraform basado en los datos del formulario
-            const terraformCode = generateTerraformCode(vmSpec);
-            
-            // Mostrar el código de Terraform en la consola
-            console.log('Código de Terraform generado:');
-            console.log(terraformCode);
-            
-            alert('Código de Terraform generado. Revisa la consola y sigue las instrucciones de uso.');
-        });
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const generateButton = document.getElementById('generate-button');
+      const downloadSection = document.getElementById('downloadSection');
+      const downloadLink = document.getElementById('downloadLink');
+      const scriptModal = document.getElementById('scriptModal');
+      const modalScriptContent = document.getElementById('modalScriptContent');
+      const closeModal = document.getElementById('closeModal');
 
-        function generateTerraformCode(vmSpec) {
-            return `
+      generateButton.addEventListener('click', () => {
+        const vmCount = document.getElementById('vm-count').value;
+        const osType = document.getElementById('os-type').value;
+        const storageSize = document.getElementById('storage-size').value;
+        const ramSize = document.getElementById('ram-size').value;
+        const additionalSoftware = document.getElementById('additional-software').value;
+
+        const terraformConfig = generateTerraformConfig(vmCount, osType, storageSize, ramSize, additionalSoftware);
+        modalScriptContent.textContent = terraformConfig;
+        downloadLink.href = `data:application/octet-stream;charset=utf-8,${encodeURIComponent(terraformConfig)}`;
+        downloadLink.download = 'azure-vm-provisioning.tf';
+
+        downloadSection.classList.remove('hidden');
+        scriptModal.classList.remove('hidden');
+      });
+
+      closeModal.addEventListener('click', () => {
+        scriptModal.classList.add('hidden');
+      });
+
+      function generateTerraformConfig(vmCount, osType, storageSize, ramSize, additionalSoftware) {
+        return `
 terraform {
   required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0.2"
+    avs = {
+      source = "hashicorp/avs"
+      version = "~> 0.1.0"
     }
   }
 }
 
-provider "azurerm" {
-  features {}
+provider "avs" {
+  # Configure your Azure VMware Solution provider
 }
 
-resource "azurerm_resource_group" "example" {
-  name     = "example-rg"
-  location = "West Europe"
-}
-
-resource "azurerm_resource_manager_private_cloud" "example" {
-  name                = "example-private-cloud"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  sku_name            = "AV36"
-  management_cluster {
-    node_count = 3
+resource "avs_virtual_machine" "vm" {
+  count = ${vmCount}
+  name = "vm-${count.index + 1}"
+  os_type = "${osType}"
+  storage_profile {
+    disk_size_gb = ${storageSize}
   }
-}
-
-resource "azurerm_vmware_virtual_machine" "example" {
-  name                = "example-vm"
-  resource_group_name = azurerm_resource_group.example.name
-  private_cloud_name   = azurerm_resource_manager_private_cloud.example.name
-  cluster_name         = "cluster1"
-  template_id          = data.azurerm_vmware_template.${vmSpec.os}.id
-  num_cpus             = 2
-  memory_gb            = ${vmSpec.memory}
-  disk_gb              = ${vmSpec.storage}
-  customization_spec {
-    windows_options {
-      computer_name = "example-vm"
-    }
+  hardware_profile {
+    memory_gb = ${ramSize}
   }
+  additional_software = "${additionalSoftware}"
 }
-
-data "azurerm_vmware_template" "windows" {
-  name           = "Windows Server 2019"
-  private_cloud_name = azurerm_resource_manager_private_cloud.example.name
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-data "azurerm_vmware_template" "linux" {
-  name           = "Ubuntu 20.04"
-  private_cloud_name = azurerm_resource_manager_private_cloud.example.name
-  resource_group_name = azurerm_resource_group.example.name
-}
-            `;
-        }
-    </script>
+        `;
+      }
+    });
+  </script>
 </body>
 </html>
