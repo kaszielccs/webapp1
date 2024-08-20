@@ -1,183 +1,143 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitud de Máquina Virtual en Azure VMware Services</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Azure VM Provisioning Script Generator</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="max-w-7xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8 text-center">Generador de Script para Aprovisionar VMs en Azure VMware Services</h1>
-        <div class="flex flex-col md:flex-row gap-8">
-            <!-- Columna izquierda: Formulario -->
-            <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="p-8">
-                    <h2 class="text-xl font-semibold mb-4">Solicitud de Máquina Virtual</h2>
-                    <form id="vmForm" class="space-y-4">
-                        <div>
-                            <label for="vmCount" class="block text-sm font-medium text-gray-700">Cantidad de servidores:</label>
-                            <input type="number" id="vmCount" name="vmCount" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                        </div>
-                        <div>
-                            <label for="os" class="block text-sm font-medium text-gray-700">Sistema Operativo:</label>
-                            <select id="os" name="os" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <option value="">Seleccione SO</option>
-                                <option value="Windows">Windows Server</option>
-                                <option value="Linux">Linux</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="storage" class="block text-sm font-medium text-gray-700">Almacenamiento (GB):</label>
-                            <input type="number" id="storage" name="storage" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                        </div>
-                        <div>
-                            <label for="memory" class="block text-sm font-medium text-gray-700">Memoria RAM (GB):</label>
-                            <input type="number" id="memory" name="memory" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                        </div>
-                        <div>
-                            <label for="software" class="block text-sm font-medium text-gray-700">Software adicional:</label>
-                            <textarea id="software" name="software" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
-                        </div>
-                        <div>
-                            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                Generar Script
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Columna derecha: Instrucciones y botón de descarga -->
-            <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="p-8">
-                    <h2 class="text-xl font-semibold mb-4">Instrucciones de Ejecución</h2>
-                    <ol class="list-decimal list-inside space-y-2 mb-6">
-                        <li>Asegúrate de tener los siguientes requisitos previos configurados en tu entorno Azure:
-                            <ul class="list-disc list-inside space-y-2 ml-4">
-                                <li>Módulo Az.VMware instalado</li>
-                                <li>Cuenta de Azure autenticada (Connect-AzAccount)</li>
-                                <li>Valores correctos para $ResourceGroupName, $PrivateCloudName y $ClusterName</li>
-                            </ul>
-                        </li>
-                        <li>Genera el script utilizando el formulario de la izquierda.</li>
-                        <li>Copia el script generado o descárgalo como archivo .ps1.</li>
-                        <li>Abre PowerShell como administrador y ejecuta el script con el siguiente comando (reemplaza <script_path> con la ubicación real del archivo):
-                            <pre class="bg-gray-100 p-2 rounded mt-2">.\<script_path>\Create-AzureVMwareVMs.ps1</pre>
-                        </li>
-                    </ol>
-                    <div id="downloadSection" class="hidden">
-                        <h3 class="text-lg font-semibold mb-2">Descargar Script</h3>
-                        <button id="downloadButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Descargar Script PowerShell
-                        </button>
-                    </div>
-                </div>
-            </div>
+<body>
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-center">Azure VM Provisioning Script Generator</h1>
+    <div class="flex flex-col md:flex-row gap-8">
+      <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+          <h2 class="text-xl font-semibold mb-4">Virtual Machine Request</h2>
+          <div>
+            <label for="vm-count">Number of Servers:</label>
+            <input type="number" id="vm-count" name="vm-count" class="border rounded px-3 py-2 w-full" min="1" required>
+          </div>
+          <div>
+            <label for="os-type">Operating System:</label>
+            <select id="os-type" name="os-type" class="border rounded px-3 py-2 w-full" required>
+              <option value="">Select OS</option>
+              <option value="windows">Windows Server</option>
+              <option value="linux">Linux</option>
+            </select>
+          </div>
+          <div>
+            <label for="storage-size">Storage (GB):</label>
+            <input type="number" id="storage-size" name="storage-size" class="border rounded px-3 py-2 w-full" min="1" required>
+          </div>
+          <div>
+            <label for="ram-size">Memory RAM (GB):</label>
+            <input type="number" id="ram-size" name="ram-size" class="border rounded px-3 py-2 w-full" min="1" required>
+          </div>
+          <div>
+            <label for="additional-software">Additional Software:</label>
+            <input type="text" id="additional-software" name="additional-software" class="border rounded px-3 py-2 w-full">
+          </div>
+          <button id="generate-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
+            Generate Script
+          </button>
         </div>
+      </div>
+      <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+          <h2 class="text-xl font-semibold mb-4">Execution Instructions</h2>
+          <ol class="list-decimal list-inside">
+            <li>Generate the script using the form on the left.</li>
+            <li>Copy the generated script or download it as a .json file.</li>
+            <li>Open the Azure Portal and navigate to the "Deploy a custom template" section.</li>
+            <li>Paste the script content or upload the .json file.</li>
+            <li>Fill in any required parameters and deploy the template.</li>
+          </ol>
+          <div id="downloadSection" class="hidden">
+            <h3 class="text-lg font-semibold mb-2">Download Script</h3>
+            <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Download ARM Template
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- Modal para mostrar el script -->
     <div id="scriptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div class="mt-3 text-center">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Script PowerShell Generado</h3>
-                <div class="mt-2 px-7 py-3">
-                    <pre id="modalScriptContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
-                </div>
-                <div class="items-center px-4 py-3">
-                    <button id="closeModal" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        Cerrar
-                    </button>
-                </div>
-            </div>
+      <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Generated ARM Template</h3>
+          <div class="mt-2 px-7 py-3">
+            <pre id="modalScriptContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
+          </div>
+          <div class="items-center px-4 py-3">
+            <button id="closeModal" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Close
+            </button>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        document.getElementById('vmForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const vmSpec = Object.fromEntries(formData.entries());
-            
-            const powershellScript = generatePowerShellScript(vmSpec);
-            
-            // Mostrar el script en el modal
-            document.getElementById('modalScriptContent').textContent = powershellScript;
-            document.getElementById('scriptModal').classList.remove('hidden');
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const generateButton = document.getElementById('generate-button');
+      const downloadSection = document.getElementById('downloadSection');
+      const downloadLink = document.getElementById('downloadLink');
+      const scriptModal = document.getElementById('scriptModal');
+      const modalScriptContent = document.getElementById('modalScriptContent');
+      const closeModal = document.getElementById('closeModal');
 
-            // Mostrar la sección de descarga
-            document.getElementById('downloadSection').classList.remove('hidden');
-        });
+      generateButton.addEventListener('click', () => {
+        const vmCount = document.getElementById('vm-count').value;
+        const osType = document.getElementById('os-type').value;
+        const storageSize = document.getElementById('storage-size').value;
+        const ramSize = document.getElementById('ram-size').value;
+        const additionalSoftware = document.getElementById('additional-software').value;
 
-        document.getElementById('closeModal').addEventListener('click', function() {
-            document.getElementById('scriptModal').classList.add('hidden');
-        });
+        const armTemplate = generateArmTemplate(vmCount, osType, storageSize, ramSize, additionalSoftware);
+        modalScriptContent.textContent = JSON.stringify(armTemplate, null, 2);
+        downloadLink.href = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(armTemplate, null, 2))}`;
+        downloadLink.download = 'azure-vm-provisioning.json';
 
-        document.getElementById('downloadButton').addEventListener('click', function() {
-            const scriptContent = document.getElementById('modalScriptContent').textContent;
-            const blob = new Blob([scriptContent], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'Create-AzureVMwareVMs.ps1';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
+        downloadSection.classList.remove('hidden');
+        scriptModal.classList.remove('hidden');
+      });
 
-        function generatePowerShellScript(vmSpec) {
-            const $ResourceGroupName = "myResourceGroup";
-            const $PrivateCloudName = "myPrivateCloud";
-            const $ClusterName = "myCluster";
+      closeModal.addEventListener('click', () => {
+        scriptModal.classList.add('hidden');
+      });
 
-            const $vmCount = vmSpec.vmCount;
-            const $os = vmSpec.os;
-            const $storage = vmSpec.storage;
-            const $memory = vmSpec.memory;
-            const $software = vmSpec.software;
-
-            let script = "";
-            script += '$ResourceGroupName = "' + $ResourceGroupName + '"\n';
-            script += '$PrivateCloudName = "' + $PrivateCloudName + '"\n';
-            script += '$ClusterName = "' + $ClusterName + '"\n\n';
-            script += '$vmCount = ' + $vmCount + '\n';
-            script += '$os = "' + $os + '"\n';
-            script += '$storage = ' + $storage + '\n';
-            script += '$memory = ' + $memory + '\n';
-            script += '$software = "' + $software + '"\n\n';
-
-            script += '# Create an array to store the VM details\n';
-            script += '$vmDetails = @()\n\n';
-
-            script += '# Loop to create the requested number of VMs\n';
-            script += 'for ($i = 1; $i -le $vmCount; $i++) {\n';
-            script += '    $vmName = "VM$i"\n';
-            script += '    $vmSpec = @{\n';
-            script += '        Name = $vmName\n';
-            script += '        OSType = $os\n';
-            script += '        DiskSizeGB = $storage\n';
-            script += '        MemoryGB = $memory\n';
-            script += '        AdditionalSoftware = $software\n';
-            script += '    }\n';
-            script += '    $vmDetails += $vmSpec\n';
-            script += '}\n\n';
-
-            script += '# Create the ARM template parameter object\n';
-            script += '$armTemplateParams = @{\n';
-            script += '    privateCloudName = $PrivateCloudName\n';
-            script += '    clusterName = $ClusterName\n';
-            script += '    vmDetails = $vmDetails\n';
-            script += '}\n\n';
-
-            script += '# Deploy the ARM template to provision the VMs\n';
-            script += 'New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName `\n';
-            script += '                              -TemplateFile "path/to/azure-vmware-vm-template.json" `\n';
-            script += '                              -TemplateParameterObject $armTemplateParams';
-
-            return script;
-        }
-    </script>
+      function generateArmTemplate(vmCount, osType, storageSize, ramSize, additionalSoftware) {
+        // Generate the ARM template based on the user input
+        return {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "type": "Microsoft.AVS/privateClouds/virtualMachines",
+              "name": "[concat('myPrivateCloud', '/vm-', copyIndex(1))]",
+              "copy": {
+                "name": "vmCopy",
+                "count": "[int(parameters('vmCount'))]"
+              },
+              "properties": {
+                "osType": "[parameters('osType')]",
+                "storageProfile": {
+                  "diskSizeGB": "[parameters('storageSizeGB')]"
+                },
+                "hardwareProfile": {
+                  "memoryGB": "[parameters('ramSizeGB')]"
+                },
+                "additionalSoftware": "[parameters('additionalSoftware')]"
+              }
+            }
+          ],
+          "outputs": {}
+        };
+      }
+    });
+  </script>
 </body>
 </html>
