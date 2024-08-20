@@ -7,7 +7,13 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
   <style>
     .server-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
       margin-bottom: 1rem;
+    }
+    .server-row input, .server-row select {
+      width: 100%;
     }
   </style>
 </head>
@@ -29,25 +35,10 @@
         Generar Script
       </button>
     </div>
-
-    <div id="downloadSection" class="hidden mt-8 bg-white rounded-xl shadow-md overflow-hidden p-8">
-      <h2 class="text-xl font-semibold mb-4">Instrucciones de Ejecución</h2>
-      <ol class="list-decimal list-inside mb-4">
-        <li>Genera el script usando el formulario anterior.</li>
-        <li>Descarga el script generado y guárdalo como un archivo .json.</li>
-        <li>Abre Azure Portal o tu herramienta de línea de comandos preferida.</li>
-        <li>Sube el archivo .json a Azure para desplegar los recursos.</li>
-        <li>Verifica que los recursos se hayan creado correctamente en el portal de Azure.</li>
-      </ol>
-      <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Descargar Configuración de ARM
-      </a>
-    </div>
-
     <div id="scriptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
       <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Configuración de ARM Generada</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Configuración ARM Generada</h3>
           <div class="mt-2 px-7 py-3">
             <pre id="modalScriptContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
           </div>
@@ -58,6 +49,22 @@
           </div>
         </div>
       </div>
+    </div>
+    <div id="downloadSection" class="hidden">
+      <h3 class="text-lg font-semibold mb-2">Descargar Script</h3>
+      <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Descargar Configuración ARM
+      </a>
+    </div>
+    <div class="mt-8">
+      <h2 class="text-xl font-semibold mb-4">Instrucciones de Ejecución</h2>
+      <ol class="list-decimal list-inside">
+        <li>Genera el script usando el formulario arriba.</li>
+        <li>Copie el script generado o descárguelo como un archivo .json.</li>
+        <li>Abre el portal de Azure o utiliza la CLI de Azure para desplegar el archivo de plantilla.</li>
+        <li>En el portal de Azure, ve a la sección de "Implementar una plantilla" y carga el archivo JSON.</li>
+        <li>En la CLI de Azure, utiliza el comando <code>az deployment group create --resource-group <RESOURCE_GROUP_NAME> --template-file <TEMPLATE_FILE>.json</code>.</li>
+      </ol>
     </div>
   </div>
 
@@ -93,7 +100,7 @@
 
         const armConfig = generateARMConfig(vmCount, serverConfigs, additionalSoftware);
         modalScriptContent.textContent = armConfig;
-        downloadLink.href = `data:application/octet-stream;charset=utf-8,${encodeURIComponent(armConfig)}`;
+        downloadLink.href = `data:application/json;charset=utf-8,${encodeURIComponent(armConfig)}`;
         downloadLink.download = 'provisionamiento-vm-azure.json';
 
         downloadSection.classList.remove('hidden');
@@ -108,44 +115,38 @@
         serverFieldsContainer.innerHTML = '';
         if (count > 0) {
           serverFieldsContainer.innerHTML += `
-            <table class="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th class="border px-4 py-2">Nombre del Servidor</th>
-                  <th class="border px-4 py-2">Sistema Operativo</th>
-                  <th class="border px-4 py-2">Almacenamiento (GB)</th>
-                  <th class="border px-4 py-2">Memoria RAM (GB)</th>
-                  <th class="border px-4 py-2">Cantidad de Núcleos</th>
-                </tr>
-              </thead>
-              <tbody>
+            <div class="server-row">
+              <div><strong>Nombre del Servidor:</strong></div>
+              <div><strong>Sistema Operativo:</strong></div>
+              <div><strong>Almacenamiento (GB):</strong></div>
+              <div><strong>Memoria RAM (GB):</strong></div>
+              <div><strong>Cantidad de Núcleos:</strong></div>
+            </div>
           `;
           for (let i = 1; i <= count; i++) {
             serverFieldsContainer.innerHTML += `
-              <tr>
-                <td class="border px-4 py-2">
-                  <input type="text" id="server-name-${i}" name="server-name-${i}" class="border rounded px-2 py-1 w-full">
-                </td>
-                <td class="border px-4 py-2">
-                  <select id="os-type-${i}" name="os-type-${i}" class="border rounded px-2 py-1 w-full">
-                    <option value="">Seleccionar SO</option>
-                    <option value="windows">Windows Server</option>
+              <div class="server-row">
+                <div>
+                  <input type="text" id="server-name-${i}" name="server-name-${i}" class="border rounded px-3 py-2">
+                </div>
+                <div>
+                  <select id="os-type-${i}" name="os-type-${i}" class="border rounded px-3 py-2">
                     <option value="linux">Linux</option>
+                    <option value="windows">Windows Server</option>
                   </select>
-                </td>
-                <td class="border px-4 py-2">
-                  <input type="number" id="storage-size-${i}" name="storage-size-${i}" class="border rounded px-2 py-1 w-full" min="1" required>
-                </td>
-                <td class="border px-4 py-2">
-                  <input type="number" id="ram-size-${i}" name="ram-size-${i}" class="border rounded px-2 py-1 w-full" min="1" required>
-                </td>
-                <td class="border px-4 py-2">
-                  <input type="number" id="cores-${i}" name="cores-${i}" class="border rounded px-2 py-1 w-full" min="1" required>
-                </td>
-              </tr>
+                </div>
+                <div>
+                  <input type="number" id="storage-size-${i}" name="storage-size-${i}" class="border rounded px-3 py-2" min="1" required>
+                </div>
+                <div>
+                  <input type="number" id="ram-size-${i}" name="ram-size-${i}" class="border rounded px-3 py-2" min="1" required>
+                </div>
+                <div>
+                  <input type="number" id="cores-${i}" name="cores-${i}" class="border rounded px-3 py-2" min="1" required>
+                </div>
+              </div>
             `;
           }
-          serverFieldsContainer.innerHTML += `</tbody></table>`;
         }
       }
 
@@ -154,59 +155,86 @@
         serverConfigs.forEach((config, index) => {
           serverResources += `
 {
-  "$schema": "https://schema.management.azure.com/2021-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "resources": [
-    {
-      "type": "Microsoft.Compute/virtualMachines",
-      "apiVersion": "2022-03-01",
-      "name": "${config.name}",
-      "location": "<LOCATION>",
-      "properties": {
-        "hardwareProfile": {
-          "vmSize": "Standard_DS${config.cores}_v2"
-        },
-        "storageProfile": {
-          "osDisk": {
-            "createOption": "FromImage",
-            "diskSizeGB": "${config.storageSize}"
-          }
-        },
-        "osProfile": {
-          "computerName": "${config.name}",
-          "adminUsername": "<USERNAME>",
-          "adminPassword": "<PASSWORD>",
-          "linuxConfiguration": {
-            "disablePasswordAuthentication": true,
-            "ssh": {
-              "publicKeys": [
-                {
-                  "path": "/home/<USERNAME>/.ssh/authorized_keys",
-                  "keyData": "<SSH-KEY>"
-                }
-              ]
-            }
-          }
-        },
-        "networkProfile": {
-          "networkInterfaces": [
+  "type": "Microsoft.Compute/virtualMachines",
+  "apiVersion": "2021-03-01",
+  "name": "${config.name}",
+  "location": "<LOCATION>",
+  "properties": {
+    "hardwareProfile": {
+      "vmSize": "Standard_DS${config.cores}_v2"
+    },
+    "storageProfile": {
+      "imageReference": {
+        "publisher": "MicrosoftWindowsServer",
+        "offer": "WindowsServer",
+        "sku": "2019-Datacenter",
+        "version": "latest"
+      },
+      "osDisk": {
+        "createOption": "FromImage",
+        "diskSizeGB": ${config.storageSize}
+      }
+    },
+    "osProfile": {
+      "computerName": "${config.name}",
+      "adminUsername": "<USERNAME>",
+      "adminPassword": "<PASSWORD>",
+      "secrets": [
+        {
+          "sourceVault": {
+            "id": "<VAULT_ID>"
+          },
+          "vaultCertificates": [
             {
-              "id": "<NIC-ID>"
+              "certificateUrl": "<CERT_URL>"
             }
           ]
         }
-      }
+      ]
+    },
+    "networkProfile": {
+      "networkInterfaces": [
+        {
+          "id": "<NIC_ID>"
+        }
+      ]
     }
-  ]
-}
-`;
+  }
+}`;
         });
 
-        return `
-[
-${serverResources}
-]
-        `;
+        return `{
+  "$schema": "https://schema.management.azure.com/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Admin username for virtual machines."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for virtual machines."
+      }
+    }
+  },
+  "resources": [${serverResources}],
+  "outputs": {
+    "adminUsername": {
+      "type": "string",
+      "value": "[parameters('adminUsername')]"
+    }
+  }
+}`;
       }
     });
   </script>
