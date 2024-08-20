@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Script de Provisión de VM en Azure (PowerShell)</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+    .dynamic-table input[type="text"], 
+    .dynamic-table input[type="number"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 5px;
+      font-size: 14px;
+    }
+    .dynamic-table td, .dynamic-table th {
+      padding: 5px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .dynamic-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .dynamic-table th {
+      background-color: #f2f2f2;
+    }
+    .dynamic-table td {
+      border: 1px solid #ddd;
+    }
+    @media (max-width: 768px) {
+      .dynamic-table td, .dynamic-table th {
+        font-size: 12px;
+        padding: 4px;
+      }
+      .dynamic-table input[type="text"], 
+      .dynamic-table input[type="number"] {
+        font-size: 12px;
+      }
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="max-w-7xl mx-auto p-8">
+    <h1 class="text-3xl font-bold mb-8 text-center">Generador de Script de Provisión de VM en Azure (PowerShell)</h1>
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="p-8">
+        <h2 class="text-xl font-semibold mb-4">Solicitud de Máquina Virtual</h2>
+        <div>
+          <label for="vm-count">Número de Servidores:</label>
+          <input type="number" id="vm-count" name="vm-count" class="border rounded px-3 py-2 w-full" min="1" required>
+        </div>
+        <div id="server-fields" class="my-4"></div>
+        <div>
+          <label for="additional-software">Software Adicional:</label>
+          <input type="text" id="additional-software" name="additional-software" class="border rounded px-3 py-2 w-full">
+        </div>
+        <button id="generate-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
+          Generar Script
+        </button>
+      </div>
+    </div>
+
+    <div id="downloadSection" class="hidden mt-8">
+      <h3 class="text-lg font-semibold mb-2">Descargar Script</h3>
+      <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Descargar Script de PowerShell
+      </a>
+    </div>
+
+    <div id="scriptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+      <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Script de PowerShell Generado</h3>
+          <div class="mt-2 px-7 py-3">
+            <pre id="modalScriptContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
+          </div>
+          <div class="items-center px-4 py-3">
+            <button id="closeModal" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="executionInstructions" class="mt-8">
+      <h3 class="text-lg font-semibold mb-2">Instrucciones de Ejecución</h3>
+      <p>Genera el script utilizando el formulario de la izquierda.</p>
+      <p>Copia el script generado o descárgalo como archivo .ps1.</p>
+      <p>Abre PowerShell como administrador.</p>
+      <p>Asegúrate de tener instalado el módulo Az.VMware:</p>
+      <pre><code>Install-Module -Name Az.VMware -Force</code></pre>
+      <p>Ejecuta el script con el siguiente comando (reemplaza <ruta_del_script> con la ubicación real del archivo):</p>
+      <pre><code>.\<ruta_del_script>\Create-AzureVMwareVMs.ps1</code></pre>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const vmCountInput = document.getElementById('vm-count');
+      const serverFieldsContainer = document.getElementById('server-fields');
+      const generateButton = document.getElementById('generate-button');
+      const downloadSection = document.getElementById('downloadSection');
+      const downloadLink = document.getElementById('downloadLink');
+      const scriptModal = document.getElementById('scriptModal');
+      const modalScriptContent = document.getElementById('modalScriptContent');
+      const closeModal = document.getElementById('closeModal');
+
+      vmCountInput.addEventListener('input', () => {
+        const vmCount = parseInt(vmCountInput.value, 10) || 0;
+        updateServerFields(vmCount);
+      });
+
+      generateButton.addEventListener('click', () => {
+        const vmCount = parseInt(vmCountInput.value, 10) || 0;
+        const additionalSoftware = document.getElementById('additional-software').value;
+
+        if (vmCount <= 0) {
+          alert("Por favor, ingrese un número válido de servidores.");
+          return;
+        }
+
+        const serverConfigs = [];
+        for (let i = 1; i <= vmCount; i++) {
+          const serverName = document.getElementById(`server-name-${i}`).value || `vm-${i}`;
+          const osType = document.getElementById(`os-type-${i}`).value;
+          const storageSize = document.getElementById(`storage-size-${i}`).value;
+          const ramSize = document.getElementById(`ram-size-${i}`).value;
+          const cores = document.getElementById(`cores-${i}`).value;
+
+          if (!osType || !storageSize || !ramSize) {
+            alert("Por favor, complete todos los campos obligatorios.");
+            return;
+          }
+
+          serverConfigs.push({ name: serverName, osType, storageSize, ramSize, cores });
+        }
+
+        const powerShellScript = generatePowerShellScript(vmCount, serverConfigs, additionalSoftware);
+        modalScriptContent.textContent = powerShellScript;
+        downloadLink.href = `data:application/octet-stream;charset=utf-8,${encodeURIComponent(powerShellScript)}`;
+        downloadLink.download = 'Create-AzureVMwareVMs.ps1';
+
+        downloadSection.classList.remove('hidden');
+        scriptModal.classList.remove('hidden');
+      });
+
+      closeModal.addEventListener('click', () => {
+        scriptModal.classList.add('hidden');
+      });
+
+      function updateServerFields(count) {
+        if (count <= 0) {
+          serverFieldsContainer.innerHTML = '';
+          return;
+        }
+
+        let rowsHtml = `
+          <div class="table-responsive">
+            <table class="dynamic-table">
+              <thead>
+                <tr>
+                  <th>Nombre del Servidor</th>
+                  <th>Sistema Operativo</th>
+                  <th>Almacenamiento (GB)</th>
+                  <th>Memoria RAM (GB)</th>
+                  <th>Número de Núcleos</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        for (let i = 1; i <= count; i++) {
+          rowsHtml += `
+            <tr>
+              <td><input type="text" id="server-name-${i}" name="server-name-${i}" placeholder="Nombre del servidor" required></td>
+              <td>
+                <select id="os-type-${i}" name="os-type-${i}" required>
+                  <option value="">Seleccionar SO</option>
+                  <option value="WindowsServer">Windows Server</option>
+                  <option value="Linux">Linux</option>
+                </select>
+              </td>
+              <td><input type="number" id="storage-size-${i}" name="storage-size-${i}" placeholder="Tamaño en GB" min="1" required></td>
+              <td><input type="number" id="ram-size-${i}" name="ram-size-${i}" placeholder="Memoria RAM en GB" min="1" required></td>
+              <td><input type="number" id="cores-${i}" name="cores-${i}" placeholder="Número de Núcleos" min="1" required></td>
+            </tr>
+          `;
+        }
+        rowsHtml += `
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        serverFieldsContainer.innerHTML = rowsHtml;
+      }
+
+      function generatePowerShellScript(count, serverConfigs, additionalSoftware) {
+        let script = `
+# Script de PowerShell para provisión de máquinas virtuales en Azure VMware Solution
+
+# Conectar a la suscripción de Azure
+Connect-AzAccount
+
+# Definir parámetros
+$resourceGroupName = "ResourceGroup"
+$location = "EastUS"
+
+# Configuración adicional
+$additionalSoftware = "${additionalSoftware}"
+
+# Crear máquinas virtuales
+for ($i = 1; $i -le ${count}; $i++) {
+    $serverConfig = $serverConfigs[$i - 1]
+    $serverName = $serverConfig.name
+    $osType = $serverConfig.osType
+    $storageSize = $serverConfig.storageSize
+    $ramSize = $serverConfig.ramSize
+    $cores = $serverConfig.cores
+    $vmSize = "Standard_DS2_v2"  # Tamaño de la VM, ajustar según necesidades
+
+    # Crear VM en Azure VMware Solution
+    New-AzVM -ResourceGroupName $resourceGroupName -Name $serverName `
+        -Location $location -Size $vmSize -Image "${osType}" `
+        -StorageProfile_OSDiskCreateOption FromImage -StorageProfile_StorageAccountType Standard_LRS `
+        -NetworkInterfaceId (New-AzNetworkInterface -ResourceGroupName $resourceGroupName `
+        -Name "$serverName-nic" -Location $location -SubnetId (Get-AzVirtualNetworkSubnetConfig -ResourceGroupName $resourceGroupName `
+        -VirtualNetworkName "MyVnet" -Name "default").Id -PublicIpAddressId (New-AzPublicIpAddress -ResourceGroupName $resourceGroupName `
+        -Name "$serverName-pip" -Location $location).Id).Id `
+        -Credential (Get-Credential) -Tag @{ "Environment" = "Production" }
+}
+        `;
+        return script;
+      }
+    });
+  </script>
+</body>
+</html>
