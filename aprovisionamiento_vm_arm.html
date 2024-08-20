@@ -3,39 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitud de Máquina Virtual con ARM</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Solicitud de Máquina Virtual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <h1>Solicitud de Máquina Virtual con ARM</h1>
-        <form id="vmForm">
-            <div class="form-group">
-                <label for="vmCount">Cantidad de servidores:</label>
-                <input type="number" id="vmCount" name="vmCount" min="1" required>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-center">Generador de Plantilla ARM para VM en Azure VMware Services</h1>
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Columna izquierda: Formulario -->
+            <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-8">
+                    <h2 class="text-xl font-semibold mb-4">Solicitud de Máquina Virtual</h2>
+                    <form id="vmForm" class="space-y-4">
+                        <div>
+                            <label for="vmCount" class="block text-sm font-medium text-gray-700">Cantidad de servidores:</label>
+                            <input type="number" id="vmCount" name="vmCount" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="os" class="block text-sm font-medium text-gray-700">Sistema Operativo:</label>
+                            <select id="os" name="os" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <option value="">Seleccione SO</option>
+                                <option value="Windows">Windows Server</option>
+                                <option value="Linux">Linux</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="storage" class="block text-sm font-medium text-gray-700">Almacenamiento (GB):</label>
+                            <input type="number" id="storage" name="storage" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="memory" class="block text-sm font-medium text-gray-700">Memoria RAM (GB):</label>
+                            <input type="number" id="memory" name="memory" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="software" class="block text-sm font-medium text-gray-700">Software adicional:</label>
+                            <textarea id="software" name="software" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
+                        </div>
+                        <div>
+                            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Generar Plantilla ARM
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="os">Sistema Operativo:</label>
-                <select id="os" name="os" required>
-                    <option value="">Seleccione SO</option>
-                    <option value="Windows">Windows Server</option>
-                    <option value="Linux">Linux</option>
-                </select>
+            
+            <!-- Columna derecha: Instrucciones y ejemplo de uso -->
+            <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-8">
+                    <h2 class="text-xl font-semibold mb-4">Instrucciones de Uso</h2>
+                    <ol class="list-decimal list-inside space-y-2 mb-6">
+                        <li>Genera la plantilla de ARM utilizando el formulario de la izquierda.</li>
+                        <li>Asegúrate de tener instalado el módulo Az.Resources y el proveedor de recursos de Azure VMware Services:</li>
+                        <pre class="bg-gray-100 p-2 rounded mt-2 mb-2">
+Install-Module -Name Az.Resources -Force
+Register-AzResourceProvider -ProviderNamespace Microsoft.VMwareCloudSimple
+                        </pre>
+                        <li>Crea un nuevo grupo de recursos o usa un grupo existente:</li>
+                        <pre class="bg-gray-100 p-2 rounded mt-2 mb-2">
+New-AzResourceGroup -Name YourResourceGroupName -Location YourLocation
+                        </pre>
+                        <li>Despliega la plantilla de ARM con los parámetros correspondientes:</li>
+                        <pre class="bg-gray-100 p-2 rounded mt-2">
+New-AzResourceGroupDeployment `
+    -ResourceGroupName YourResourceGroupName `
+    -TemplateFile .\arm-template-for-azure-vmware.json `
+    -vmCount 2 `
+    -operatingSystem "Windows" `
+    -storageSize 100 `
+    -memorySize 8 `
+    -additionalSoftware "SQL Server" `
+    -resourceGroupName YourResourceGroupName `
+    -privateCloudName YourPrivateCloudName `
+    -clusterName YourClusterName
+                        </pre>
+                    </ol>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-2">Ejemplo de Plantilla ARM</h3>
+                        <button id="viewArmTemplate" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            Ver Plantilla ARM
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="storage">Almacenamiento (GB):</label>
-                <input type="number" id="storage" name="storage" min="1" required>
+        </div>
+    </div>
+
+    <!-- Modal para mostrar la plantilla de ARM -->
+    <div id="armTemplateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Plantilla de ARM</h3>
+                <div class="mt-2 px-7 py-3">
+                    <pre id="armTemplateContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="closeArmTemplateModal" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        Cerrar
+                    </button>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="memory">Memoria RAM (GB):</label>
-                <input type="number" id="memory" name="memory" min="1" required>
-            </div>
-            <div class="form-group">
-                <label for="software">Software adicional:</label>
-                <textarea id="software" name="software" rows="3"></textarea>
-            </div>
-            <button type="submit" id="downloadButton">Generar y Descargar Script ARM</button>
-        </form>
+        </div>
     </div>
 
     <script>
@@ -43,119 +111,57 @@
             e.preventDefault();
             const formData = new FormData(this);
             const vmSpec = Object.fromEntries(formData.entries());
-
-            const armTemplate = generateARMTemplate(vmSpec);
             
-            const blob = new Blob([JSON.stringify(armTemplate, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            document.getElementById('downloadButton').href = url;
-            document.getElementById('downloadButton').download = "arm_template.json";
+            const armTemplate = generateArmTemplate(vmSpec);
+            
+            // Mostrar la plantilla de ARM en el modal
+            document.getElementById('armTemplateContent').textContent = JSON.stringify(armTemplate, null, 2);
+            document.getElementById('armTemplateModal').classList.remove('hidden');
         });
 
-        function generateARMTemplate(vmSpec) {
-            return {
-                "$schema": "https://schema.management.azure.com/2019-04-01/deploymentTemplate.json#",
+        document.getElementById('closeArmTemplateModal').addEventListener('click', function() {
+            document.getElementById('armTemplateModal').classList.add('hidden');
+        });
+
+        document.getElementById('viewArmTemplate').addEventListener('click', function() {
+            // Mostrar el ejemplo de plantilla de ARM en el modal
+            const exampleArmTemplate = {
+                "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                 "contentVersion": "1.0.0.0",
-                "resources": [
-                    {
-                        "type": "Microsoft.Resources/resourceGroups",
-                        "apiVersion": "2021-04-01",
-                        "location": "East US",
-                        "properties": {}
-                    },
-                    {
-                        "type": "Microsoft.Network/virtualNetworks",
-                        "apiVersion": "2021-05-01",
-                        "name": "myVnet",
-                        "location": "East US",
-                        "properties": {
-                            "addressSpace": {
-                                "addressPrefixes": [
-                                    "10.0.0.0/16"
-                                ]
-                            }
-                        }
-                    },
-                    {
-                        "type": "Microsoft.Network/subnets",
-                        "apiVersion": "2021-05-01",
-                        "name": "myVnet/mySubnet",
-                        "properties": {
-                            "addressPrefix": "10.0.1.0/24"
-                        }
-                    },
-                    {
-                        "type": "Microsoft.Network/networkInterfaces",
-                        "apiVersion": "2021-05-01",
-                        "name": "myNIC",
-                        "location": "East US",
-                        "properties": {
-                            "ipConfigurations": [
-                                {
-                                    "name": "ipConfig1",
-                                    "properties": {
-                                        "privateIPAllocationMethod": "Dynamic",
-                                        "subnet": {
-                                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'myVnet', 'mySubnet')]"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "type": "Microsoft.Compute/virtualMachines",
-                        "apiVersion": "2021-03-01",
-                        "name": "myVM",
-                        "location": "East US",
-                        "properties": {
-                            "hardwareProfile": {
-                                "vmSize": "Standard_DS1_v2"
-                            },
-                            "osProfile": {
-                                "computerName": "hostname",
-                                "adminUsername": "azureuser",
-                                "adminPassword": "Password1234!"
-                            },
-                            "storageProfile": {
-                                "imageReference": {
-                                    "publisher": vmSpec.os === 'Windows' ? 'MicrosoftWindowsServer' : 'Canonical',
-                                    "offer": vmSpec.os === 'Windows' ? 'WindowsServer' : 'UbuntuServer',
-                                    "sku": vmSpec.os === 'Windows' ? '2019-Datacenter' : '18.04-LTS',
-                                    "version": "latest"
-                                },
-                                "osDisk": {
-                                    "createOption": "FromImage",
-                                    "managedDisk": {
-                                        "storageAccountType": "Standard_LRS"
-                                    }
-                                }
-                            },
-                            "networkProfile": {
-                                "networkInterfaces": [
-                                    {
-                                        "id": "[resourceId('Microsoft.Network/networkInterfaces', 'myNIC')]"
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                ],
                 "parameters": {
-                    "os": {
+                    "vmCount": {
+                        "type": "int",
+                        "defaultValue": 2
+                    },
+                    "operatingSystem": {
                         "type": "string",
-                        "defaultValue": "Linux",
-                        "allowedValues": [
-                            "Windows",
-                            "Linux"
-                        ],
-                        "metadata": {
-                            "description": "El sistema operativo para la máquina virtual."
-                        }
+                        "defaultValue": "Windows"
+                    },
+                    "storageSize": {
+                        "type": "int",
+                        "defaultValue": 100
+                    },
+                    "memorySize": {
+                        "type": "int",
+                        "defaultValue": 8
+                    },
+                    "additionalSoftware": {
+                        "type": "string",
+                        "defaultValue": "SQL Server"
+                    },
+                    "resourceGroupName": {
+                        "type": "string",
+                        "defaultValue": "YourResourceGroupName"
+                    },
+                    "privateCloudName": {
+                        "type": "string",
+                        "defaultValue": "YourPrivateCloudName"
+                    },
+                    "clusterName": {
+                        "type": "string",
+                        "defaultValue": "YourClusterName"
                     }
-                }
+                },
+                // Contenido de la plantilla de ARM
             };
-        }
-    </script>
-</body>
-</html>
+            document.getElementById('armTempl
