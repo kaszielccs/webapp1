@@ -136,7 +136,7 @@
           const ramSize = document.getElementById(`ram-size-${i}`).value;
           const cores = document.getElementById(`cores-${i}`).value;
 
-          if (!osType || !storageSize || !ramSize) {
+          if (!osType || !storageSize || !ramSize || !cores) {
             alert("Por favor, complete todos los campos obligatorios.");
             return;
           }
