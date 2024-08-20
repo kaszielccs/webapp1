@@ -48,7 +48,7 @@ input[type="submit"]:hover {
     background-color: #45a049;
 }
 
-server-row {
+.server-row {
     margin-bottom: 1rem;
 }
 
