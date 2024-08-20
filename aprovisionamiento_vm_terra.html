@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Generador de Script de Provisión de VM en Azure (Terraform)</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .server-row {
+      margin-bottom: 1rem;
+    }
+  </style>
 </head>
 <body>
   <div class="max-w-7xl mx-auto">
@@ -17,6 +22,7 @@
             <label for="vm-count">Número de Servidores:</label>
             <input type="number" id="vm-count" name="vm-count" class="border rounded px-3 py-2 w-full" min="1" required>
           </div>
+          <div id="server-fields"></div>
           <div>
             <label for="os-type">Sistema Operativo:</label>
             <select id="os-type" name="os-type" class="border rounded px-3 py-2 w-full" required>
@@ -32,14 +38,6 @@
           <div>
             <label for="ram-size">Memoria RAM (GB):</label>
             <input type="number" id="ram-size" name="ram-size" class="border rounded px-3 py-2 w-full" min="1" required>
-          </div>
-          <div>
-            <label for="cores">Cantidad de Núcleos (opcional):</label>
-            <input type="number" id="cores" name="cores" class="border rounded px-3 py-2 w-full" min="1">
-          </div>
-          <div>
-            <label for="server-name">Nombre del Servidor (opcional):</label>
-            <input type="text" id="server-name" name="server-name" class="border rounded px-3 py-2 w-full">
           </div>
           <div>
             <label for="additional-software">Software Adicional:</label>
@@ -89,6 +87,8 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      const vmCountInput = document.getElementById('vm-count');
+      const serverFieldsContainer = document.getElementById('server-fields');
       const generateButton = document.getElementById('generate-button');
       const downloadSection = document.getElementById('downloadSection');
       const downloadLink = document.getElementById('downloadLink');
@@ -96,16 +96,26 @@
       const modalScriptContent = document.getElementById('modalScriptContent');
       const closeModal = document.getElementById('closeModal');
 
+      vmCountInput.addEventListener('input', () => {
+        const vmCount = parseInt(vmCountInput.value, 10) || 0;
+        updateServerFields(vmCount);
+      });
+
       generateButton.addEventListener('click', () => {
-        const vmCount = document.getElementById('vm-count').value;
+        const vmCount = parseInt(vmCountInput.value, 10) || 0;
         const osType = document.getElementById('os-type').value;
         const storageSize = document.getElementById('storage-size').value;
         const ramSize = document.getElementById('ram-size').value;
-        const cores = document.getElementById('cores').value || 1; // Valor por defecto de 1 núcleo
-        const serverName = document.getElementById('server-name').value || 'vm'; // Valor por defecto
         const additionalSoftware = document.getElementById('additional-software').value;
+        
+        const serverConfigs = [];
+        for (let i = 1; i <= vmCount; i++) {
+          const serverName = document.getElementById(`server-name-${i}`).value || `vm-${i}`;
+          const cores = document.getElementById(`cores-${i}`).value || 1;
+          serverConfigs.push({ name: serverName, cores });
+        }
 
-        const terraformConfig = generateTerraformConfig(vmCount, osType, storageSize, ramSize, cores, serverName, additionalSoftware);
+        const terraformConfig = generateTerraformConfig(vmCount, osType, storageSize, ramSize, serverConfigs, additionalSoftware);
         modalScriptContent.textContent = terraformConfig;
         downloadLink.href = `data:application/octet-stream;charset=utf-8,${encodeURIComponent(terraformConfig)}`;
         downloadLink.download = 'provisionamiento-vm-azure.tf';
@@ -118,13 +128,75 @@
         scriptModal.classList.add('hidden');
       });
 
-      function generateTerraformConfig(vmCount, osType, storageSize, ramSize, cores, serverName, additionalSoftware) {
+      function updateServerFields(count) {
+        serverFieldsContainer.innerHTML = '';
+        for (let i = 1; i <= count; i++) {
+          serverFieldsContainer.innerHTML += `
+            <div class="server-row">
+              <h3 class="text-lg font-semibold mb-2">Servidor ${i}</h3>
+              <div>
+                <label for="server-name-${i}">Nombre del Servidor:</label>
+                <input type="text" id="server-name-${i}" name="server-name-${i}" class="border rounded px-3 py-2 w-full">
+              </div>
+              <div>
+                <label for="cores-${i}">Cantidad de Núcleos:</label>
+                <input type="number" id="cores-${i}" name="cores-${i}" class="border rounded px-3 py-2 w-full" min="1">
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      function generateTerraformConfig(vmCount, osType, storageSize, ramSize, serverConfigs, additionalSoftware) {
+        let serverResources = '';
+        serverConfigs.forEach((config, index) => {
+          serverResources += `
+resource "azurerm_virtual_machine" "vm_${index}" {
+  name = "${config.name}"
+  resource_group_name = "<RESOURCE_GROUP_NAME>"
+  location = "<LOCATION>"
+  size = "Standard_DS${config.cores}_v2"
+  network_interface_ids = ["<NETWORK_INTERFACE_ID>"]
+
+  storage_os_disk {
+    name              = "osdisk-${index + 1}"
+    caching           = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+    disk_size_gb      = ${storageSize}
+  }
+
+  storage_image_reference {
+    publisher = "<PUBLISHER>"
+    offer     = "<OFFER>"
+    sku       = "<SKU>"
+    version   = "latest"
+  }
+
+  os_profile {
+    computer_name  = "${config.name}"
+    admin_username = "<ADMIN_USERNAME>"
+    admin_password = "<ADMIN_PASSWORD>"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+  
+  tags = {
+    environment = "development"
+  }
+  
+  # Configura el software adicional si es necesario
+}
+          `;
+        });
+
         return `
 terraform {
   required_providers {
     azurerm = {
       source = "hashicorp/azurerm"
-      version = "~> 3.0"
+      version = "~> 2.0"
     }
   }
 }
@@ -133,44 +205,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_virtual_machine" "vm" {
-  count = ${vmCount}
-  name = "${serverName}-${count.index + 1}"
-  resource_group_name = "<RESOURCE_GROUP_NAME>"
-  location = "<LOCATION>"
-  size = "Standard_DS${cores}_v2"
-  network_interface_ids = ["<NETWORK_INTERFACE_ID>"]
-  
-  storage_os_disk {
-    name              = "osdisk-${count.index + 1}"
-    caching           = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-    disk_size_gb      = ${storageSize}
-  }
-
-  storage_image_reference {
-    publisher = "${osType === 'windows' ? 'MicrosoftWindowsServer' : 'Canonical'}"
-    offer     = "${osType === 'windows' ? 'WindowsServer' : 'UbuntuServer'}"
-    sku       = "${osType === 'windows' ? '2019-Datacenter' : '18.04-LTS'}"
-    version   = "latest"
-  }
-
-  hardware_profile {
-    vm_size = "Standard_DS${cores}_v2"
-  }
-
-  os_profile {
-    computer_name  = "${serverName}-${count.index + 1}"
-    admin_username = "<ADMIN_USERNAME>"
-    admin_password = "<ADMIN_PASSWORD>"
-  }
-
-  tags = {
-    environment = "development"
-  }
-  
-  # Configura el software adicional si es necesario
-}
+${serverResources}
         `;
       }
     });
