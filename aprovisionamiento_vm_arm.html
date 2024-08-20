@@ -1,61 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Azure VM Provisioning Script Generator</title>
+  <title>Generador de Script para Provisión de VM en Azure (Terraform)</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body>
   <div class="max-w-7xl mx-auto">
-    <h1 class="text-3xl font-bold mb-8 text-center">Azure VM Provisioning Script Generator</h1>
+    <h1 class="text-3xl font-bold mb-8 text-center">Generador de Script para Provisión de VM en Azure (Terraform)</h1>
     <div class="flex flex-col md:flex-row gap-8">
       <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
         <div class="p-8">
-          <h2 class="text-xl font-semibold mb-4">Virtual Machine Request</h2>
+          <h2 class="text-xl font-semibold mb-4">Solicitud de Máquina Virtual</h2>
           <div>
-            <label for="vm-count">Number of Servers:</label>
+            <label for="vm-count">Número de Servidores:</label>
             <input type="number" id="vm-count" name="vm-count" class="border rounded px-3 py-2 w-full" min="1" required>
           </div>
           <div>
-            <label for="os-type">Operating System:</label>
+            <label for="os-type">Sistema Operativo:</label>
             <select id="os-type" name="os-type" class="border rounded px-3 py-2 w-full" required>
-              <option value="">Select OS</option>
+              <option value="">Seleccionar SO</option>
               <option value="windows">Windows Server</option>
               <option value="linux">Linux</option>
             </select>
           </div>
           <div>
-            <label for="storage-size">Storage (GB):</label>
+            <label for="storage-size">Almacenamiento (GB):</label>
             <input type="number" id="storage-size" name="storage-size" class="border rounded px-3 py-2 w-full" min="1" required>
           </div>
           <div>
-            <label for="ram-size">Memory RAM (GB):</label>
+            <label for="ram-size">Memoria RAM (GB):</label>
             <input type="number" id="ram-size" name="ram-size" class="border rounded px-3 py-2 w-full" min="1" required>
           </div>
           <div>
-            <label for="additional-software">Additional Software:</label>
+            <label for="additional-software">Software Adicional:</label>
             <input type="text" id="additional-software" name="additional-software" class="border rounded px-3 py-2 w-full">
           </div>
           <button id="generate-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
-            Generate Script
+            Generar Script
           </button>
         </div>
       </div>
       <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
         <div class="p-8">
-          <h2 class="text-xl font-semibold mb-4">Execution Instructions</h2>
+          <h2 class="text-xl font-semibold mb-4">Instrucciones de Ejecución</h2>
           <ol class="list-decimal list-inside">
-            <li>Generate the script using the form on the left.</li>
-            <li>Copy the generated script or download it as a .json file.</li>
-            <li>Open the Azure Portal and navigate to the "Deploy a custom template" section.</li>
-            <li>Paste the script content or upload the .json file.</li>
-            <li>Fill in any required parameters and deploy the template.</li>
+            <li>Genera el script utilizando el formulario a la izquierda.</li>
+            <li>Copie el script generado o descárgalo como un archivo .tf.</li>
+            <li>Abre tu editor o IDE de Terraform preferido.</li>
+            <li>Crea un nuevo archivo de configuración de Terraform y pega el contenido del script.</li>
+            <li>Ejecuta <code>terraform init</code> para inicializar el directorio de trabajo de Terraform.</li>
+            <li>Ejecuta <code>terraform apply</code> para provisionar los recursos en Azure.</li>
           </ol>
           <div id="downloadSection" class="hidden">
-            <h3 class="text-lg font-semibold mb-2">Download Script</h3>
+            <h3 class="text-lg font-semibold mb-2">Descargar Script</h3>
             <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Download ARM Template
+              Descargar Configuración de Terraform
             </a>
           </div>
         </div>
@@ -64,13 +65,13 @@
     <div id="scriptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
       <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Generated ARM Template</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Configuración de Terraform Generada</h3>
           <div class="mt-2 px-7 py-3">
             <pre id="modalScriptContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
           </div>
           <div class="items-center px-4 py-3">
             <button id="closeModal" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Close
+              Cerrar
             </button>
           </div>
         </div>
@@ -94,10 +95,10 @@
         const ramSize = document.getElementById('ram-size').value;
         const additionalSoftware = document.getElementById('additional-software').value;
 
-        const armTemplate = generateArmTemplate(vmCount, osType, storageSize, ramSize, additionalSoftware);
-        modalScriptContent.textContent = JSON.stringify(armTemplate, null, 2);
-        downloadLink.href = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(armTemplate, null, 2))}`;
-        downloadLink.download = 'azure-vm-provisioning.json';
+        const terraformConfig = generateTerraformConfig(vmCount, osType, storageSize, ramSize, additionalSoftware);
+        modalScriptContent.textContent = terraformConfig;
+        downloadLink.href = `data:application/octet-stream;charset=utf-8,${encodeURIComponent(terraformConfig)}`;
+        downloadLink.download = 'azure-vm-provisioning.tf';
 
         downloadSection.classList.remove('hidden');
         scriptModal.classList.remove('hidden');
@@ -107,35 +108,87 @@
         scriptModal.classList.add('hidden');
       });
 
-      function generateArmTemplate(vmCount, osType, storageSize, ramSize, additionalSoftware) {
-        // Generate the ARM template based on the user input
-        return {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "contentVersion": "1.0.0.0",
-          "parameters": {},
-          "variables": {},
-          "resources": [
-            {
-              "type": "Microsoft.AVS/privateClouds/virtualMachines",
-              "name": "[concat('myPrivateCloud', '/vm-', copyIndex(1))]",
-              "copy": {
-                "name": "vmCopy",
-                "count": "[int(parameters('vmCount'))]"
-              },
-              "properties": {
-                "osType": "[parameters('osType')]",
-                "storageProfile": {
-                  "diskSizeGB": "[parameters('storageSizeGB')]"
-                },
-                "hardwareProfile": {
-                  "memoryGB": "[parameters('ramSizeGB')]"
-                },
-                "additionalSoftware": "[parameters('additionalSoftware')]"
-              }
-            }
-          ],
-          "outputs": {}
-        };
+      function generateTerraformConfig(vmCount, osType, storageSize, ramSize, additionalSoftware) {
+        return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "East US"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-network"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_network_interface" "example" {
+  name                = "example-nic"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  network_interface_id = "${azurerm_network_interface.example.id}"
+  ip_configuration {
+    name                          = "example"
+    subnet_id                     = azurerm_subnet.example.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "example" {
+  count               = ${vmCount}
+  name                = "example-vm-${count.index + 1}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  size                = "Standard_DS1_v2"
+  network_interface_ids = [azurerm_network_interface.example.id]
+
+  storage_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "myosdisk1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    disk_size_gb      = ${storageSize}
+  }
+
+  storage_data_disk {
+    count             = 1
+    create_option     = "Empty"
+    disk_size_gb      = ${storageSize}
+    lun               = 0
+  }
+
+  os_profile {
+    computer_name  = "hostname"
+    admin_username = "adminuser"
+    admin_password = "P@ssw0rd1234"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  tags = {
+    environment = "testing"
+  }
+}
+        `;
       }
     });
   </script>
