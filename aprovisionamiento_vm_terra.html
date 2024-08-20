@@ -114,10 +114,11 @@
 
       function updateServerFields(count) {
         serverFieldsContainer.innerHTML = '';
+	      serverFieldsContainer.innerHTML += `
 		<div class="table-container">
 		<table>
 		<thead>
-             <tr>
+             		<tr>
 				<label>Nombre del Servidor:</label>
 			 </tr>
 			 <tr>
@@ -134,6 +135,7 @@
 			 </tr>
 		</thead>
 		<tbody>
+  			`;
         for (let i = 1; i <= count; i++) {
           serverFieldsContainer.innerHTML += `
 			<div class="server-row">
