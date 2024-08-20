@@ -51,3 +51,48 @@ input[type="submit"]:hover {
 server-row {
     margin-bottom: 1rem;
 }
+
+/* Ajustes adicionales para la tabla dinámica */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.dynamic-table input[type="text"], 
+.dynamic-table input[type="number"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 5px;
+    font-size: 14px;
+}
+
+.dynamic-table td, .dynamic-table th {
+    padding: 5px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.dynamic-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dynamic-table th {
+    background-color: #f2f2f2;
+}
+
+.dynamic-table td {
+    border: 1px solid #ddd;
+}
+
+@media (max-width: 768px) {
+    .dynamic-table td, .dynamic-table th {
+        font-size: 12px;
+        padding: 4px;
+    }
+
+    .dynamic-table input[type="text"], 
+    .dynamic-table input[type="number"] {
+        font-size: 12px;
+    }
+}
