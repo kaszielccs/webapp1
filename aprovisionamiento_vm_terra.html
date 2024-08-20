@@ -114,37 +114,69 @@
 
       function updateServerFields(count) {
         serverFieldsContainer.innerHTML = '';
+		<div class="table-container">
+		<table>
+		<thead>
+             <tr>
+				<label>Nombre del Servidor:</label>
+			 </tr>
+			 <tr>
+				<label>Sistema Operativo: </label>
+			 </tr>
+			 <tr>
+				<label>Almacenamiento (GB):</label>
+			 </tr>
+			 <tr>
+				<label for="storage-size-${i}">Memoria RAM (GB):</label>
+			 </tr>
+			 <tr>
+				<label for="storage-size-${i}">Cantidad de Núcleos:</label>
+			 </tr>
+		</thead>
+		<tbody>
         for (let i = 1; i <= count; i++) {
           serverFieldsContainer.innerHTML += `
-            <div class="server-row">
-              <h3 class="text-lg font-semibold mb-2">Servidor ${i}</h3>
+			<div class="server-row">
+			<tr>
+			<td>
               <div>
-                <label for="server-name-${i}">Nombre del Servidor:</label>
+                <!%--<label for="server-name-${i}">Nombre del Servidor:</label>-->
                 <input type="text" id="server-name-${i}" name="server-name-${i}" class="border rounded px-3 py-2 w-full">
               </div>
+			</td>
+			<td>
               <div>
-                <label for="os-type-${i}">Sistema Operativo:</label>
+                <!%--<label for="os-type-${i}">Sistema Operativo:</label>-->
                 <select id="os-type-${i}" name="os-type-${i}" class="border rounded px-3 py-2 w-full">
                   <option value="">Seleccionar SO</option>
                   <option value="windows">Windows Server</option>
                   <option value="linux">Linux</option>
                 </select>
               </div>
+			</td>
+			<td>
               <div>
-                <label for="storage-size-${i}">Almacenamiento (GB):</label>
+                <!%--<label for="storage-size-${i}">Almacenamiento (GB):</label>-->
                 <input type="number" id="storage-size-${i}" name="storage-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
               </div>
+			</td>
+			<td>
               <div>
-                <label for="ram-size-${i}">Memoria RAM (GB):</label>
+                <!%--<label for="ram-size-${i}">Memoria RAM (GB):</label>-->
                 <input type="number" id="ram-size-${i}" name="ram-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
               </div>
+			</td>
+			<td>
               <div>
-                <label for="cores-${i}">Cantidad de Núcleos:</label>
+                 <!%--<label for="cores-${i}">Cantidad de Núcleos:</label>-->
                 <input type="number" id="cores-${i}" name="cores-${i}" class="border rounded px-3 py-2 w-full" min="1">
               </div>
+			</td>
+			</tr>
             </div>
           `;
         }
+		</tbody>
       }
 
       function generateTerraformConfig(vmCount, serverConfigs, additionalSoftware) {
