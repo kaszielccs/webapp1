@@ -3,69 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de Script para Provisión de VM en Azure (Terraform)</title>
+  <title>Generador de Script de Provisión de VM en Azure (ARM)</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .server-row {
+      margin-bottom: 1rem;
+    }
+  </style>
 </head>
 <body>
   <div class="max-w-7xl mx-auto">
-    <h1 class="text-3xl font-bold mb-8 text-center">Generador de Script para Provisión de VM en Azure (Terraform)</h1>
-    <div class="flex flex-col md:flex-row gap-8">
-      <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="p-8">
-          <h2 class="text-xl font-semibold mb-4">Solicitud de Máquina Virtual</h2>
-          <div>
-            <label for="vm-count">Número de Servidores:</label>
-            <input type="number" id="vm-count" name="vm-count" class="border rounded px-3 py-2 w-full" min="1" required>
-          </div>
-          <div>
-            <label for="os-type">Sistema Operativo:</label>
-            <select id="os-type" name="os-type" class="border rounded px-3 py-2 w-full" required>
-              <option value="">Seleccionar SO</option>
-              <option value="windows">Windows Server</option>
-              <option value="linux">Linux</option>
-            </select>
-          </div>
-          <div>
-            <label for="storage-size">Almacenamiento (GB):</label>
-            <input type="number" id="storage-size" name="storage-size" class="border rounded px-3 py-2 w-full" min="1" required>
-          </div>
-          <div>
-            <label for="ram-size">Memoria RAM (GB):</label>
-            <input type="number" id="ram-size" name="ram-size" class="border rounded px-3 py-2 w-full" min="1" required>
-          </div>
-          <div>
-            <label for="additional-software">Software Adicional:</label>
-            <input type="text" id="additional-software" name="additional-software" class="border rounded px-3 py-2 w-full">
-          </div>
-          <button id="generate-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
-            Generar Script
-          </button>
-        </div>
+    <h1 class="text-3xl font-bold mb-8 text-center">Generador de Script de Provisión de VM en Azure (ARM)</h1>
+    <div class="bg-white rounded-xl shadow-md overflow-hidden p-8">
+      <h2 class="text-xl font-semibold mb-4">Solicitud de Máquina Virtual</h2>
+      <div>
+        <label for="vm-count">Número de Servidores:</label>
+        <input type="number" id="vm-count" name="vm-count" class="border rounded px-3 py-2 w-full" min="1" required>
       </div>
-      <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="p-8">
-          <h2 class="text-xl font-semibold mb-4">Instrucciones de Ejecución</h2>
-          <ol class="list-decimal list-inside">
-            <li>Genera el script utilizando el formulario a la izquierda.</li>
-            <li>Copie el script generado o descárgalo como un archivo .tf.</li>
-            <li>Abre tu editor o IDE de Terraform preferido.</li>
-            <li>Crea un nuevo archivo de configuración de Terraform y pega el contenido del script.</li>
-            <li>Ejecuta <code>terraform init</code> para inicializar el directorio de trabajo de Terraform.</li>
-            <li>Ejecuta <code>terraform apply</code> para provisionar los recursos en Azure.</li>
-          </ol>
-          <div id="downloadSection" class="hidden">
-            <h3 class="text-lg font-semibold mb-2">Descargar Script</h3>
-            <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Descargar Configuración de Terraform
-            </a>
-          </div>
-        </div>
+      <div id="server-fields"></div>
+      <div>
+        <label for="additional-software">Software Adicional:</label>
+        <input type="text" id="additional-software" name="additional-software" class="border rounded px-3 py-2 w-full">
       </div>
+      <button id="generate-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
+        Generar Script
+      </button>
     </div>
+
+    <div id="downloadSection" class="hidden mt-8 bg-white rounded-xl shadow-md overflow-hidden p-8">
+      <h2 class="text-xl font-semibold mb-4">Instrucciones de Ejecución</h2>
+      <ol class="list-decimal list-inside mb-4">
+        <li>Genera el script usando el formulario anterior.</li>
+        <li>Descarga el script generado y guárdalo como un archivo .json.</li>
+        <li>Abre Azure Portal o tu herramienta de línea de comandos preferida.</li>
+        <li>Sube el archivo .json a Azure para desplegar los recursos.</li>
+        <li>Verifica que los recursos se hayan creado correctamente en el portal de Azure.</li>
+      </ol>
+      <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Descargar Configuración de ARM
+      </a>
+    </div>
+
     <div id="scriptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
       <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Configuración de Terraform Generada</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Configuración de ARM Generada</h3>
           <div class="mt-2 px-7 py-3">
             <pre id="modalScriptContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
           </div>
@@ -81,6 +63,8 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      const vmCountInput = document.getElementById('vm-count');
+      const serverFieldsContainer = document.getElementById('server-fields');
       const generateButton = document.getElementById('generate-button');
       const downloadSection = document.getElementById('downloadSection');
       const downloadLink = document.getElementById('downloadLink');
@@ -88,17 +72,29 @@
       const modalScriptContent = document.getElementById('modalScriptContent');
       const closeModal = document.getElementById('closeModal');
 
-      generateButton.addEventListener('click', () => {
-        const vmCount = document.getElementById('vm-count').value;
-        const osType = document.getElementById('os-type').value;
-        const storageSize = document.getElementById('storage-size').value;
-        const ramSize = document.getElementById('ram-size').value;
-        const additionalSoftware = document.getElementById('additional-software').value;
+      vmCountInput.addEventListener('input', () => {
+        const vmCount = parseInt(vmCountInput.value, 10) || 0;
+        updateServerFields(vmCount);
+      });
 
-        const terraformConfig = generateTerraformConfig(vmCount, osType, storageSize, ramSize, additionalSoftware);
-        modalScriptContent.textContent = terraformConfig;
-        downloadLink.href = `data:application/octet-stream;charset=utf-8,${encodeURIComponent(terraformConfig)}`;
-        downloadLink.download = 'azure-vm-provisioning.tf';
+      generateButton.addEventListener('click', () => {
+        const vmCount = parseInt(vmCountInput.value, 10) || 0;
+        const additionalSoftware = document.getElementById('additional-software').value;
+        
+        const serverConfigs = [];
+        for (let i = 1; i <= vmCount; i++) {
+          const serverName = document.getElementById(`server-name-${i}`).value || `vm-${i}`;
+          const osType = document.getElementById(`os-type-${i}`).value || 'linux';
+          const storageSize = document.getElementById(`storage-size-${i}`).value || 30;
+          const ramSize = document.getElementById(`ram-size-${i}`).value || 2;
+          const cores = document.getElementById(`cores-${i}`).value || 1;
+          serverConfigs.push({ name: serverName, osType, storageSize, ramSize, cores });
+        }
+
+        const armConfig = generateARMConfig(vmCount, serverConfigs, additionalSoftware);
+        modalScriptContent.textContent = armConfig;
+        downloadLink.href = `data:application/octet-stream;charset=utf-8,${encodeURIComponent(armConfig)}`;
+        downloadLink.download = 'provisionamiento-vm-azure.json';
 
         downloadSection.classList.remove('hidden');
         scriptModal.classList.remove('hidden');
@@ -108,86 +104,108 @@
         scriptModal.classList.add('hidden');
       });
 
-      function generateTerraformConfig(vmCount, osType, storageSize, ramSize, additionalSoftware) {
+      function updateServerFields(count) {
+        serverFieldsContainer.innerHTML = '';
+        if (count > 0) {
+          serverFieldsContainer.innerHTML += `
+            <table class="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th class="border px-4 py-2">Nombre del Servidor</th>
+                  <th class="border px-4 py-2">Sistema Operativo</th>
+                  <th class="border px-4 py-2">Almacenamiento (GB)</th>
+                  <th class="border px-4 py-2">Memoria RAM (GB)</th>
+                  <th class="border px-4 py-2">Cantidad de Núcleos</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+          for (let i = 1; i <= count; i++) {
+            serverFieldsContainer.innerHTML += `
+              <tr>
+                <td class="border px-4 py-2">
+                  <input type="text" id="server-name-${i}" name="server-name-${i}" class="border rounded px-2 py-1 w-full">
+                </td>
+                <td class="border px-4 py-2">
+                  <select id="os-type-${i}" name="os-type-${i}" class="border rounded px-2 py-1 w-full">
+                    <option value="">Seleccionar SO</option>
+                    <option value="windows">Windows Server</option>
+                    <option value="linux">Linux</option>
+                  </select>
+                </td>
+                <td class="border px-4 py-2">
+                  <input type="number" id="storage-size-${i}" name="storage-size-${i}" class="border rounded px-2 py-1 w-full" min="1" required>
+                </td>
+                <td class="border px-4 py-2">
+                  <input type="number" id="ram-size-${i}" name="ram-size-${i}" class="border rounded px-2 py-1 w-full" min="1" required>
+                </td>
+                <td class="border px-4 py-2">
+                  <input type="number" id="cores-${i}" name="cores-${i}" class="border rounded px-2 py-1 w-full" min="1" required>
+                </td>
+              </tr>
+            `;
+          }
+          serverFieldsContainer.innerHTML += `</tbody></table>`;
+        }
+      }
+
+      function generateARMConfig(vmCount, serverConfigs, additionalSoftware) {
+        let serverResources = '';
+        serverConfigs.forEach((config, index) => {
+          serverResources += `
+{
+  "$schema": "https://schema.management.azure.com/2021-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "resources": [
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2022-03-01",
+      "name": "${config.name}",
+      "location": "<LOCATION>",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "Standard_DS${config.cores}_v2"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "createOption": "FromImage",
+            "diskSizeGB": "${config.storageSize}"
+          }
+        },
+        "osProfile": {
+          "computerName": "${config.name}",
+          "adminUsername": "<USERNAME>",
+          "adminPassword": "<PASSWORD>",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+              "publicKeys": [
+                {
+                  "path": "/home/<USERNAME>/.ssh/authorized_keys",
+                  "keyData": "<SSH-KEY>"
+                }
+              ]
+            }
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "<NIC-ID>"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+`;
+        });
+
         return `
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "East US"
-}
-
-resource "azurerm_virtual_network" "example" {
-  name                = "example-network"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_subnet" "example" {
-  name                 = "example-subnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_network_interface" "example" {
-  name                = "example-nic"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  network_interface_id = "${azurerm_network_interface.example.id}"
-  ip_configuration {
-    name                          = "example"
-    subnet_id                     = azurerm_subnet.example.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_virtual_machine" "example" {
-  count               = ${vmCount}
-  name                = "example-vm-${count.index + 1}"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  size                = "Standard_DS1_v2"
-  network_interface_ids = [azurerm_network_interface.example.id]
-
-  storage_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name              = "myosdisk1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    disk_size_gb      = ${storageSize}
-  }
-
-  storage_data_disk {
-    count             = 1
-    create_option     = "Empty"
-    disk_size_gb      = ${storageSize}
-    lun               = 0
-  }
-
-  os_profile {
-    computer_name  = "hostname"
-    admin_username = "adminuser"
-    admin_password = "P@ssw0rd1234"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  tags = {
-    environment = "testing"
-  }
-}
+[
+${serverResources}
+]
         `;
       }
     });
