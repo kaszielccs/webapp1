@@ -71,25 +71,14 @@
     <div id="downloadSection" class="hidden mt-8">
       <h3 class="text-lg font-semibold mb-2">Descargar Script</h3>
       <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Descargar Script de PowerShell
+        Descargar Script PowerShell
       </a>
-    </div>
-
-    <div class="mt-8">
-      <h3 class="text-lg font-semibold mb-2">Instrucciones de Ejecución</h3>
-      <p>Genera el script utilizando el formulario de la izquierda.</p>
-      <p>Copia el script generado o descárgalo como archivo .ps1.</p>
-      <p>Abre PowerShell como administrador.</p>
-      <p>Asegúrate de tener instalado el módulo Az.VMware:</p>
-      <pre class="bg-gray-100 p-4 rounded overflow-x-auto">Install-Module -Name Az.VMware -Force</pre>
-      <p>Ejecuta el script con el siguiente comando (reemplaza &lt;ruta_del_script&gt; con la ubicación real del archivo):</p>
-      <pre class="bg-gray-100 p-4 rounded overflow-x-auto">.\&lt;ruta_del_script&gt;\Create-AzureVMwareVMs.ps1</pre>
     </div>
 
     <div id="scriptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
       <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Script de PowerShell Generado</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Script PowerShell Generado</h3>
           <div class="mt-2 px-7 py-3">
             <pre id="modalScriptContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
           </div>
@@ -146,8 +135,8 @@
 
         const powershellScript = generatePowerShellScript(vmCount, serverConfigs, additionalSoftware);
         modalScriptContent.textContent = powershellScript;
-        downloadLink.href = `data:application/octet-stream;charset=utf-8,${encodeURIComponent(powershellScript)}`;
-        downloadLink.download = 'Create-AzureVMwareVMs.ps1';
+        downloadLink.href = `data:text/plain;charset=utf-8,${encodeURIComponent(powershellScript)}`;
+        downloadLink.download = 'provisionamiento-vm-azure.ps1';
 
         downloadSection.classList.remove('hidden');
         scriptModal.classList.remove('hidden');
@@ -190,33 +179,37 @@
               </td>
               <td><input type="number" id="storage-size-${i}" name="storage-size-${i}" placeholder="Tamaño en GB" min="1" required></td>
               <td><input type="number" id="ram-size-${i}" name="ram-size-${i}" placeholder="Memoria RAM en GB" min="1" required></td>
-              <td><input type="number" id="cores-${i}" name="cores-${i}" placeholder="Número de núcleos" min="1" required></td>
+              <td><input type="number" id="cores-${i}" name="cores-${i}" placeholder="Cantidad de Núcleos" min="1"></td>
             </tr>
           `;
         }
-        rowsHtml += `
-              </tbody>
-            </table>
-          </div>
-        `;
+        rowsHtml += `</tbody></table></div>`;
         serverFieldsContainer.innerHTML = rowsHtml;
       }
 
-      function generatePowerShellScript(count, servers, software) {
-        const serverCommands = servers.map((server, index) => `
-# Crear la VM ${server.name}
-New-AzVM -ResourceGroupName "ResourceGroup" -Name "${server.name}" -Image "${server.osType}" -Size "${server.ramSize}GB" -StorageProfile "${server.storageSize}GB" -Cpu ${server.cores}
-        `).join('\n');
+      function generatePowerShellScript(vmCount, serverConfigs, additionalSoftware) {
+        let scriptLines = [];
 
-        return `
-# Script de PowerShell para provisión de máquinas virtuales en Azure
+        serverConfigs.forEach((config) => {
+          scriptLines.push(`
+New-AzVM -ResourceGroupName "<RESOURCE_GROUP_NAME>" -Name "${config.name}" -Location "<LOCATION>" -Image '${config.osType === 'windows' ? 'Win2019Datacenter' : 'UbuntuLTS'}' -Size "Standard_DS${config.cores}_v2" -OsDiskSizeInGB ${config.storageSize} -MemoryInGB ${config.ramSize} -CpuCount ${config.cores} -AdminUsername "<ADMIN_USERNAME>" -AdminPassword "<ADMIN_PASSWORD>"
+          `);
+        });
 
-# Conectar a la suscripción de Azure
-Connect-AzAccount
+        if (additionalSoftware) {
+          scriptLines.push(`
+# Instalar software adicional
+$softwareList = @(
+"${additionalSoftware}"
+)
 
-# Crear máquinas virtuales
-${serverCommands}
-        `;
+foreach ($software in $softwareList) {
+    Install-WindowsFeature -Name $software
+}
+          `);
+        }
+
+        return scriptLines.join('\n');
       }
     });
   </script>
