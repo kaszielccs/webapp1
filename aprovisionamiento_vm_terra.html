@@ -68,6 +68,21 @@
       </div>
     </div>
 
+    <div class="instructions">
+  <h3>Instrucciones de Ejecución</h3>
+  <ol>
+    <li>Genera el script utilizando el formulario de la izquierda.</li>
+    <li>Copia el script generado o descárgalo como archivo <strong>.ps1</strong>.</li>
+    <li>Abre PowerShell como administrador.</li>
+    <li>Asegúrate de tener instalado el módulo Az.VMware:
+      <pre><code>Install-Module -Name Az.VMware -Force</code></pre>
+    </li>
+    <li>Ejecuta el script con el siguiente comando (reemplaza &lt;ruta_del_script&gt; con la ubicación real del archivo):
+      <pre><code>.\&lt;ruta_del_script&gt;\Create-AzureVMwareVMs.ps1</code></pre>
+    </li>
+  </ol>
+</div>
+
     <div id="downloadSection" class="hidden mt-8">
       <h3 class="text-lg font-semibold mb-2">Descargar Script</h3>
       <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
