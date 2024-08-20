@@ -34,6 +34,14 @@
             <input type="number" id="ram-size" name="ram-size" class="border rounded px-3 py-2 w-full" min="1" required>
           </div>
           <div>
+            <label for="cores">Cantidad de Núcleos (opcional):</label>
+            <input type="number" id="cores" name="cores" class="border rounded px-3 py-2 w-full" min="1">
+          </div>
+          <div>
+            <label for="server-name">Nombre del Servidor (opcional):</label>
+            <input type="text" id="server-name" name="server-name" class="border rounded px-3 py-2 w-full">
+          </div>
+          <div>
             <label for="additional-software">Software Adicional:</label>
             <input type="text" id="additional-software" name="additional-software" class="border rounded px-3 py-2 w-full">
           </div>
@@ -93,9 +101,11 @@
         const osType = document.getElementById('os-type').value;
         const storageSize = document.getElementById('storage-size').value;
         const ramSize = document.getElementById('ram-size').value;
+        const cores = document.getElementById('cores').value || 1; // Valor por defecto de 1 núcleo
+        const serverName = document.getElementById('server-name').value || 'vm'; // Valor por defecto
         const additionalSoftware = document.getElementById('additional-software').value;
 
-        const terraformConfig = generateTerraformConfig(vmCount, osType, storageSize, ramSize, additionalSoftware);
+        const terraformConfig = generateTerraformConfig(vmCount, osType, storageSize, ramSize, cores, serverName, additionalSoftware);
         modalScriptContent.textContent = terraformConfig;
         downloadLink.href = `data:application/octet-stream;charset=utf-8,${encodeURIComponent(terraformConfig)}`;
         downloadLink.download = 'provisionamiento-vm-azure.tf';
@@ -108,7 +118,7 @@
         scriptModal.classList.add('hidden');
       });
 
-      function generateTerraformConfig(vmCount, osType, storageSize, ramSize, additionalSoftware) {
+      function generateTerraformConfig(vmCount, osType, storageSize, ramSize, cores, serverName, additionalSoftware) {
         return `
 terraform {
   required_providers {
@@ -125,10 +135,10 @@ provider "azurerm" {
 
 resource "azurerm_virtual_machine" "vm" {
   count = ${vmCount}
-  name = "vm-${count.index + 1}"
+  name = "${serverName}-${count.index + 1}"
   resource_group_name = "<RESOURCE_GROUP_NAME>"
   location = "<LOCATION>"
-  size = "Standard_DS1_v2"
+  size = "Standard_DS${cores}_v2"
   network_interface_ids = ["<NETWORK_INTERFACE_ID>"]
   
   storage_os_disk {
@@ -146,18 +156,20 @@ resource "azurerm_virtual_machine" "vm" {
   }
 
   hardware_profile {
-    vm_size = "Standard_DS1_v2"
+    vm_size = "Standard_DS${cores}_v2"
   }
 
   os_profile {
-    computer_name  = "vm-${count.index + 1}"
+    computer_name  = "${serverName}-${count.index + 1}"
     admin_username = "<ADMIN_USERNAME>"
     admin_password = "<ADMIN_PASSWORD>"
   }
 
   tags = {
-    environment = "testing"
+    environment = "development"
   }
+  
+  # Configura el software adicional si es necesario
 }
         `;
       }
