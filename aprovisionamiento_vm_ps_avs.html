@@ -71,14 +71,14 @@
     <div id="downloadSection" class="hidden mt-8">
       <h3 class="text-lg font-semibold mb-2">Descargar Script</h3>
       <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Descargar Script de PowerShell
+        Descargar Script PowerShell
       </a>
     </div>
 
     <div id="scriptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
       <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Script de PowerShell Generado</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Script PowerShell Generado</h3>
           <div class="mt-2 px-7 py-3">
             <pre id="modalScriptContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
           </div>
@@ -89,17 +89,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div id="executionInstructions" class="mt-8">
-      <h3 class="text-lg font-semibold mb-2">Instrucciones de Ejecución</h3>
-      <p>Genera el script utilizando el formulario de la izquierda.</p>
-      <p>Copia el script generado o descárgalo como archivo .ps1.</p>
-      <p>Abre PowerShell como administrador.</p>
-      <p>Asegúrate de tener instalado el módulo Az.VMware:</p>
-      <pre><code>Install-Module -Name Az.VMware -Force</code></pre>
-      <p>Ejecuta el script con el siguiente comando (reemplaza <ruta_del_script> con la ubicación real del archivo):</p>
-      <pre><code>.\<ruta_del_script>\Create-AzureVMwareVMs.ps1</code></pre>
     </div>
   </div>
 
@@ -122,12 +111,12 @@
       generateButton.addEventListener('click', () => {
         const vmCount = parseInt(vmCountInput.value, 10) || 0;
         const additionalSoftware = document.getElementById('additional-software').value;
-
+        
         if (vmCount <= 0) {
           alert("Por favor, ingrese un número válido de servidores.");
           return;
         }
-
+        
         const serverConfigs = [];
         for (let i = 1; i <= vmCount; i++) {
           const serverName = document.getElementById(`server-name-${i}`).value || `vm-${i}`;
@@ -136,18 +125,18 @@
           const ramSize = document.getElementById(`ram-size-${i}`).value;
           const cores = document.getElementById(`cores-${i}`).value;
 
-          if (!osType || !storageSize || !ramSize || !cores) {
+          if (!osType || !storageSize || !ramSize) {
             alert("Por favor, complete todos los campos obligatorios.");
             return;
           }
-
+          
           serverConfigs.push({ name: serverName, osType, storageSize, ramSize, cores });
         }
 
-        const powerShellScript = generatePowerShellScript(vmCount, serverConfigs, additionalSoftware);
-        modalScriptContent.textContent = powerShellScript;
-        downloadLink.href = `data:application/octet-stream;charset=utf-8,${encodeURIComponent(powerShellScript)}`;
-        downloadLink.download = 'Create-AzureVMwareVMs.ps1';
+        const powershellScript = generatePowerShellScript(vmCount, serverConfigs, additionalSoftware);
+        modalScriptContent.textContent = powershellScript;
+        downloadLink.href = `data:text/plain;charset=utf-8,${encodeURIComponent(powershellScript)}`;
+        downloadLink.download = 'provisionamiento-vm-azure.ps1';
 
         downloadSection.classList.remove('hidden');
         scriptModal.classList.remove('hidden');
@@ -162,9 +151,9 @@
           serverFieldsContainer.innerHTML = '';
           return;
         }
-
-        let rowsHtml = `
-          <div class="table-responsive">
+        
+        let rowsHtml = 
+          `<div class="table-responsive">
             <table class="dynamic-table">
               <thead>
                 <tr>
@@ -172,72 +161,62 @@
                   <th>Sistema Operativo</th>
                   <th>Almacenamiento (GB)</th>
                   <th>Memoria RAM (GB)</th>
-                  <th>Número de Núcleos</th>
+                  <th>Cantidad de Núcleos</th>
                 </tr>
               </thead>
-              <tbody>
-        `;
+              <tbody>`;
         for (let i = 1; i <= count; i++) {
-          rowsHtml += `
-            <tr>
+          rowsHtml += 
+            `<tr>
               <td><input type="text" id="server-name-${i}" name="server-name-${i}" placeholder="Nombre del servidor" required></td>
               <td>
                 <select id="os-type-${i}" name="os-type-${i}" required>
                   <option value="">Seleccionar SO</option>
-                  <option value="WindowsServer">Windows Server</option>
-                  <option value="Linux">Linux</option>
+                  <option value="windows">Windows Server</option>
+                  <option value="linux">Linux</option>
                 </select>
               </td>
               <td><input type="number" id="storage-size-${i}" name="storage-size-${i}" placeholder="Tamaño en GB" min="1" required></td>
               <td><input type="number" id="ram-size-${i}" name="ram-size-${i}" placeholder="Memoria RAM en GB" min="1" required></td>
-              <td><input type="number" id="cores-${i}" name="cores-${i}" placeholder="Número de Núcleos" min="1" required></td>
-            </tr>
-          `;
+              <td><input type="number" id="cores-${i}" name="cores-${i}" placeholder="Cantidad de Núcleos" min="1"></td>
+            </tr>`;
         }
-        rowsHtml += `
-              </tbody>
-            </table>
-          </div>
-        `;
-
+        rowsHtml += `</tbody></table></div>`;
         serverFieldsContainer.innerHTML = rowsHtml;
       }
 
-      function generatePowerShellScript(count, serverConfigs, additionalSoftware) {
+      function generatePowerShellScript(vmCount, serverConfigs, additionalSoftware) {
         let script = `
-# Script de PowerShell para provisión de máquinas virtuales en Azure VMware Solution
+# Variables
+$resourceGroupName = "<RESOURCE_GROUP_NAME>"
+$location = "<LOCATION>"
 
-# Conectar a la suscripción de Azure
-Connect-AzAccount
+# Crear servidores
+`;
 
-# Definir parámetros
-$resourceGroupName = "ResourceGroup"
-$location = "EastUS"
+        serverConfigs.forEach((config) => {
+          script += `
+New-AzVM -ResourceGroupName $resourceGroupName `
++ `-Name "${config.name}" `
++ `-Location $location `
++ `-VirtualNetworkId "<VNET_ID>" `
++ `-SubnetId "<SUBNET_ID>" `
++ `-ImageName "${config.osType === 'windows' ? 'Win2019Datacenter' : 'UbuntuLTS'}" `
++ `-Size "Standard_DS${config.cores}_v2" `
++ `-DiskSizeInGB ${config.storageSize} `
++ `-Credential (Get-Credential) `
++ `-PublicIpAddressName "${config.name}-ip" `
++ `-OpenPorts 3389,22 # Ajustar puertos según necesidad\n`;
+        });
 
-# Configuración adicional
-$additionalSoftware = "${additionalSoftware}"
+        if (additionalSoftware) {
+          script += `
+# Instalación de software adicional
+Write-Output "Instalando software adicional..."
+# Aquí se añadirían los comandos específicos para instalar el software adicional
+# Ejemplo: Install-Package -Name "${additionalSoftware}"\n`;
+        }
 
-# Crear máquinas virtuales
-for ($i = 1; $i -le ${count}; $i++) {
-    $serverConfig = $serverConfigs[$i - 1]
-    $serverName = $serverConfig.name
-    $osType = $serverConfig.osType
-    $storageSize = $serverConfig.storageSize
-    $ramSize = $serverConfig.ramSize
-    $cores = $serverConfig.cores
-    $vmSize = "Standard_DS2_v2"  # Tamaño de la VM, ajustar según necesidades
-
-    # Crear VM en Azure VMware Solution
-    New-AzVM -ResourceGroupName $resourceGroupName -Name $serverName `
-        -Location $location -Size $vmSize -Image "${osType}" `
-        -StorageProfile_OSDiskCreateOption FromImage -StorageProfile_StorageAccountType Standard_LRS `
-        -NetworkInterfaceId (New-AzNetworkInterface -ResourceGroupName $resourceGroupName `
-        -Name "$serverName-nic" -Location $location -SubnetId (Get-AzVirtualNetworkSubnetConfig -ResourceGroupName $resourceGroupName `
-        -VirtualNetworkName "MyVnet" -Name "default").Id -PublicIpAddressId (New-AzPublicIpAddress -ResourceGroupName $resourceGroupName `
-        -Name "$serverName-pip" -Location $location).Id).Id `
-        -Credential (Get-Credential) -Tag @{ "Environment" = "Production" }
-}
-        `;
         return script;
       }
     });
