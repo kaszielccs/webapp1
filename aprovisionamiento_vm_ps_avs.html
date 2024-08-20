@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+=<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -103,6 +103,7 @@
       const modalScriptContent = document.getElementById('modalScriptContent');
       const closeModal = document.getElementById('closeModal');
 
+      // Actualiza la tabla dinámica cuando el número de servidores cambia
       vmCountInput.addEventListener('input', () => {
         const vmCount = parseInt(vmCountInput.value, 10) || 0;
         updateServerFields(vmCount);
@@ -145,6 +146,7 @@
         scriptModal.classList.add('hidden');
       });
 
+      // Función para actualizar los campos de los servidores
       function updateServerFields(count) {
         if (count <= 0) {
           serverFieldsContainer.innerHTML = '';
@@ -184,6 +186,7 @@
         serverFieldsContainer.innerHTML = rowsHtml;
       }
 
+      // Función para generar el script de PowerShell
       function generatePowerShellScript(vmCount, serverConfigs, additionalSoftware) {
         let script = `
 # Importar el módulo de Az.VMware si no está ya importado
@@ -212,23 +215,27 @@ try {
     Connect-AzAccount
 
     # Crear máquinas virtuales
-    for (\$i = 0; \$i -lt \$VMCount; \$i++) {
-        \$serverConfig = @{
-            Name = "${serverConfigs[\$i].name}"
-            OS = "${serverConfigs[\$i].osType}"
-            StorageSize = "${serverConfigs[\$i].storageSize}"
-            RAMSize = "${serverConfigs[\$i].ramSize}"
-        }
-        Write-Log "Creando VM: \$($serverConfig.Name)"
-        # Aquí agregar los comandos para crear la VM en AVS
-        # Ejemplo:
-        # New-AzVM -ResourceGroupName \$ResourceGroupName -Location "East US" -VMName \$serverConfig.Name -Size "Standard_DS1_v2" -ImageName "\$serverConfig.OS" -StorageSizeGB \$serverConfig.StorageSize -MemorySizeGB \$serverConfig.RAMSize
-
-        # Simular creación
-        Start-Sleep -Seconds 5
-        Write-Log "VM \$($serverConfig.Name) creada con éxito."
+`;
+        serverConfigs.forEach((config, index) => {
+          script += `
+    \$serverConfig${index + 1} = @{
+        Name = "${config.name}"
+        OS = "${config.osType}"
+        StorageSize = ${config.storageSize}
+        RAMSize = ${config.ramSize}
     }
+    Write-Log "Creando VM: \$($serverConfig${index + 1}.Name)"
+    # Aquí agregar los comandos para crear la VM en AVS
+    # Ejemplo:
+    # New-AzVM -ResourceGroupName \$ResourceGroupName -Location "East US" -VMName \$serverConfig${index + 1}.Name -Size "Standard_DS1_v2" -ImageName "\$serverConfig${index + 1}.OS" -StorageSizeGB \$serverConfig${index + 1}.StorageSize -MemorySizeGB \$serverConfig${index + 1}.RAMSize
 
+    # Simular creación
+    Start-Sleep -Seconds 5
+    Write-Log "VM \$($serverConfig${index + 1}.Name) creada con éxito."
+`;
+        });
+
+        script += `
     # Instalación de software adicional (modificar según necesidad)
     if (\$AdditionalSoftware) {
         Write-Log "Instalando software adicional: \$AdditionalSoftware"
