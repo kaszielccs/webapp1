@@ -2,10 +2,63 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=aprovisionamiento_vm4.html">
-    <title>Redirigiendo...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprovisionamiento de Servidores DSIT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .links {
+            list-style: none;
+            padding: 0;
+        }
+        .links li {
+            margin: 10px 0;
+        }
+        .links a {
+            text-decoration: none;
+            color: #007BFF;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+        .links a:hover {
+            color: #0056b3;
+        }
+        .links a:visited {
+            color: #5a5a5a;
+        }
+    </style>
 </head>
 <body>
-    <p>Si no eres redirigido automáticamente, haz clic <a href="aprovisionamiento_vm4.html">aquí</a>.</p>
+    <div class="container">
+        <h1>Aprovisionamiento de Servidores DSIT</h1>
+        <p>Selecciona el tipo de script que deseas consultar:</p>
+        <ul class="links">
+            <li><a href="aprovisionamiento_vm4.html">Script PowerShell</a></li>
+            <li><a href="aprovisionamiento_vm_terra.html">Script Terraform</a></li>
+            <li><a href="aprovisionamiento_vm_arm.html">Script ARM</a></li>
+        </ul>
+    </div>
 </body>
 </html>
