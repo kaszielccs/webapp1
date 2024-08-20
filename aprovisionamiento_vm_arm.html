@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Máquina Virtual con ARM</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Solicitud de Máquina Virtual con ARM</h1>
+        <form id="vmForm">
+            <div class="form-group">
+                <label for="vmCount">Cantidad de servidores:</label>
+                <input type="number" id="vmCount" name="vmCount" min="1" required>
+            </div>
+            <div class="form-group">
+                <label for="os">Sistema Operativo:</label>
+                <select id="os" name="os" required>
+                    <option value="">Seleccione SO</option>
+                    <option value="Windows">Windows Server</option>
+                    <option value="Linux">Linux</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="storage">Almacenamiento (GB):</label>
+                <input type="number" id="storage" name="storage" min="1" required>
+            </div>
+            <div class="form-group">
+                <label for="memory">Memoria RAM (GB):</label>
+                <input type="number" id="memory" name="memory" min="1" required>
+            </div>
+            <div class="form-group">
+                <label for="software">Software adicional:</label>
+                <textarea id="software" name="software" rows="3"></textarea>
+            </div>
+            <button type="submit" id="downloadButton">Generar y Descargar Script ARM</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('vmForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const vmSpec = Object.fromEntries(formData.entries());
+
+            const armTemplate = generateARMTemplate(vmSpec);
+            
+            const blob = new Blob([JSON.stringify(armTemplate, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            document.getElementById('downloadButton').href = url;
+            document.getElementById('downloadButton').download = "arm_template.json";
+        });
+
+        function generateARMTemplate(vmSpec) {
+            return {
+                "$schema": "https://schema.management.azure.com/2019-04-01/deploymentTemplate.json#",
+                "contentVersion": "1.0.0.0",
+                "resources": [
+                    {
+                        "type": "Microsoft.Resources/resourceGroups",
+                        "apiVersion": "2021-04-01",
+                        "location": "East US",
+                        "properties": {}
+                    },
+                    {
+                        "type": "Microsoft.Network/virtualNetworks",
+                        "apiVersion": "2021-05-01",
+                        "name": "myVnet",
+                        "location": "East US",
+                        "properties": {
+                            "addressSpace": {
+                                "addressPrefixes": [
+                                    "10.0.0.0/16"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "type": "Microsoft.Network/subnets",
+                        "apiVersion": "2021-05-01",
+                        "name": "myVnet/mySubnet",
+                        "properties": {
+                            "addressPrefix": "10.0.1.0/24"
+                        }
+                    },
+                    {
+                        "type": "Microsoft.Network/networkInterfaces",
+                        "apiVersion": "2021-05-01",
+                        "name": "myNIC",
+                        "location": "East US",
+                        "properties": {
+                            "ipConfigurations": [
+                                {
+                                    "name": "ipConfig1",
+                                    "properties": {
+                                        "privateIPAllocationMethod": "Dynamic",
+                                        "subnet": {
+                                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'myVnet', 'mySubnet')]"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "Microsoft.Compute/virtualMachines",
+                        "apiVersion": "2021-03-01",
+                        "name": "myVM",
+                        "location": "East US",
+                        "properties": {
+                            "hardwareProfile": {
+                                "vmSize": "Standard_DS1_v2"
+                            },
+                            "osProfile": {
+                                "computerName": "hostname",
+                                "adminUsername": "azureuser",
+                                "adminPassword": "Password1234!"
+                            },
+                            "storageProfile": {
+                                "imageReference": {
+                                    "publisher": vmSpec.os === 'Windows' ? 'MicrosoftWindowsServer' : 'Canonical',
+                                    "offer": vmSpec.os === 'Windows' ? 'WindowsServer' : 'UbuntuServer',
+                                    "sku": vmSpec.os === 'Windows' ? '2019-Datacenter' : '18.04-LTS',
+                                    "version": "latest"
+                                },
+                                "osDisk": {
+                                    "createOption": "FromImage",
+                                    "managedDisk": {
+                                        "storageAccountType": "Standard_LRS"
+                                    }
+                                }
+                            },
+                            "networkProfile": {
+                                "networkInterfaces": [
+                                    {
+                                        "id": "[resourceId('Microsoft.Network/networkInterfaces', 'myNIC')]"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "parameters": {
+                    "os": {
+                        "type": "string",
+                        "defaultValue": "Linux",
+                        "allowedValues": [
+                            "Windows",
+                            "Linux"
+                        ],
+                        "metadata": {
+                            "description": "El sistema operativo para la máquina virtual."
+                        }
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>
