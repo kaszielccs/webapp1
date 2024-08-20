@@ -9,49 +9,68 @@
     .server-row {
       margin-bottom: 1rem;
     }
+    .table-container {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #ddd;
+    }
+    input, select {
+      width: 100%;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
   <div class="max-w-7xl mx-auto p-4">
     <h1 class="text-3xl font-bold mb-8 text-center">Generador de Script de Provisión de VM en Azure (Terraform)</h1>
-    <div class="flex flex-col md:flex-row gap-8">
-      <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="p-8">
-          <h2 class="text-xl font-semibold mb-4">Solicitud de Máquina Virtual</h2>
-          <div>
-            <label for="vm-count" class="block text-sm font-medium text-gray-700">Número de Servidores:</label>
-            <input type="number" id="vm-count" name="vm-count" class="border rounded px-3 py-2 w-full" min="1" required>
-          </div>
-          <div id="server-fields" class="mt-4"></div>
-          <div>
-            <label for="additional-software" class="block text-sm font-medium text-gray-700">Software Adicional:</label>
-            <input type="text" id="additional-software" name="additional-software" class="border rounded px-3 py-2 w-full">
-          </div>
-          <button id="generate-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4 w-full md:w-auto">
-            Generar Script
-          </button>
+    
+    <!-- Formulario de Solicitud de VM -->
+    <div class="w-full bg-white rounded-xl shadow-md overflow-hidden mb-8">
+      <div class="p-8">
+        <h2 class="text-xl font-semibold mb-4">Solicitud de Máquina Virtual</h2>
+        <div class="mb-4">
+          <label for="vm-count" class="block">Número de Servidores:</label>
+          <input type="number" id="vm-count" name="vm-count" class="border rounded px-3 py-2 w-full" min="1" required>
         </div>
+        <div id="server-fields"></div>
+        <div class="mt-4">
+          <label for="additional-software" class="block">Software Adicional:</label>
+          <input type="text" id="additional-software" name="additional-software" class="border rounded px-3 py-2 w-full">
+        </div>
+        <button id="generate-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
+          Generar Script
+        </button>
       </div>
-      <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="p-8">
-          <h2 class="text-xl font-semibold mb-4">Instrucciones de Ejecución</h2>
-          <ol class="list-decimal list-inside">
-            <li>Genera el script usando el formulario a la izquierda.</li>
-            <li>Copie el script generado o descárguelo como un archivo .tf.</li>
-            <li>Abre tu editor o IDE de Terraform preferido.</li>
-            <li>Crea un nuevo archivo de configuración de Terraform y pega el contenido del script.</li>
-            <li>Ejecuta <code>terraform init</code> para inicializar el directorio de trabajo de Terraform.</li>
-            <li>Ejecuta <code>terraform apply</code> para aprovisionar los recursos en Azure.</li>
-          </ol>
-          <div id="downloadSection" class="hidden">
-            <h3 class="text-lg font-semibold mb-2">Descargar Script</h3>
-            <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Descargar Configuración de Terraform
-            </a>
-          </div>
+    </div>
+    
+    <!-- Sección de Instrucciones -->
+    <div class="w-full bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="p-8">
+        <h2 class="text-xl font-semibold mb-4">Instrucciones de Ejecución</h2>
+        <ol class="list-decimal list-inside">
+          <li>Genera el script usando el formulario de arriba.</li>
+          <li>Copie el script generado o descárguelo como un archivo .tf.</li>
+          <li>Abre tu editor o IDE de Terraform preferido.</li>
+          <li>Crea un nuevo archivo de configuración de Terraform y pega el contenido del script.</li>
+          <li>Ejecuta <code>terraform init</code> para inicializar el directorio de trabajo de Terraform.</li>
+          <li>Ejecuta <code>terraform apply</code> para aprovisionar los recursos en Azure.</li>
+        </ol>
+        <div id="downloadSection" class="hidden mt-4">
+          <h3 class="text-lg font-semibold mb-2">Descargar Script</h3>
+          <a id="downloadLink" href="#" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Descargar Configuración de Terraform
+          </a>
         </div>
       </div>
     </div>
+    
+    <!-- Modal de Script Generado -->
     <div id="scriptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
       <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
@@ -115,122 +134,79 @@
       function updateServerFields(count) {
         serverFieldsContainer.innerHTML = '';
         if (count > 0) {
-          serverFieldsContainer.innerHTML += `
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200 table-auto">
-                <thead class="bg-gray-50">
+          serverFieldsContainer.innerHTML = `
+            <div class="table-container">
+              <table class="min-w-full bg-white">
+                <thead>
                   <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre del Servidor</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sistema Operativo</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Almacenamiento (GB)</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Memoria RAM (GB)</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad de Núcleos</th>
+                    <th>Nombre del Servidor</th>
+                    <th>Sistema Operativo</th>
+                    <th>Almacenamiento (GB)</th>
+                    <th>Memoria RAM (GB)</th>
+                    <th>Cantidad de Núcleos</th>
                   </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody>
           `;
-          
           for (let i = 1; i <= count; i++) {
             serverFieldsContainer.innerHTML += `
               <tr class="server-row">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <input type="text" id="server-name-${i}" name="server-name-${i}" class="border rounded px-3 py-2 w-full">
+                <td>
+                  <input type="text" id="server-name-${i}" name="server-name-${i}" class="border rounded px-3 py-2">
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <select id="os-type-${i}" name="os-type-${i}" class="border rounded px-3 py-2 w-full">
+                <td>
+                  <select id="os-type-${i}" name="os-type-${i}" class="border rounded px-3 py-2">
                     <option value="">Seleccionar SO</option>
                     <option value="windows">Windows Server</option>
                     <option value="linux">Linux</option>
                   </select>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <input type="number" id="storage-size-${i}" name="storage-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
+                <td>
+                  <input type="number" id="storage-size-${i}" name="storage-size-${i}" class="border rounded px-3 py-2" min="1">
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <input type="number" id="ram-size-${i}" name="ram-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
+                <td>
+                  <input type="number" id="ram-size-${i}" name="ram-size-${i}" class="border rounded px-3 py-2" min="1">
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <input type="number" id="cores-${i}" name="cores-${i}" class="border rounded px-3 py-2 w-full" min="1">
+                <td>
+                  <input type="number" id="cores-${i}" name="cores-${i}" class="border rounded px-3 py-2" min="1">
                 </td>
               </tr>
             `;
           }
-
-          serverFieldsContainer.innerHTML += `
-              </tbody>
-            </table>
-          </div>
-          `;
+          serverFieldsContainer.innerHTML += `</tbody></table></div>`;
         }
       }
 
       function generateTerraformConfig(vmCount, serverConfigs, additionalSoftware) {
-        let terraformConfig = `
-provider "azurerm" {
-  features = {}
-}
-
-resource "azurerm_resource_group" "rg" {
-  name     = "mi-grupo-recursos"
-  location = "East US"
-}
-
-`;
-
-        serverConfigs.forEach((server, index) => {
-          terraformConfig += `
-resource "azurerm_virtual_network" "vnet_${index + 1}" {
-  name                = "${server.name}-vnet"
-  address_space       = ["10.0.${index}.0/16"]
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-resource "azurerm_subnet" "subnet_${index + 1}" {
-  name                 = "${server.name}-subnet"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet_${index + 1}.name
-  address_prefixes     = ["10.0.${index}.0/24"]
-}
-
-resource "azurerm_network_interface" "nic_${index + 1}" {
-  name                = "${server.name}-nic"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-
-  ip_configuration {
-    name                          = "${server.name}-ipconfig"
-    subnet_id                     = azurerm_subnet.subnet_${index + 1}.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
+        let serverResources = '';
+                serverConfigs.forEach((config, index) => {
+          serverResources += `
 resource "azurerm_virtual_machine" "vm_${index + 1}" {
-  name                  = "${server.name}"
-  location              = azurerm_resource_group.rg.location
+  name                  = "${config.name}"
   resource_group_name   = azurerm_resource_group.rg.name
+  location              = azurerm_resource_group.rg.location
   network_interface_ids = [azurerm_network_interface.nic_${index + 1}.id]
   vm_size               = "Standard_DS1_v2"
 
-  storage_os_disk {
-    name              = "${server.name}-osdisk"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-    disk_size_gb      = ${server.storageSize}
-  }
-
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "${server.osType}"
-    sku       = "18.04-LTS"
+    publisher = "${config.osType === 'windows' ? 'MicrosoftWindowsServer' : 'Canonical'}"
+    offer     = "${config.osType === 'windows' ? 'WindowsServer' : 'UbuntuServer'}"
+    sku       = "${config.osType === 'windows' ? '2019-Datacenter' : '18.04-LTS'}"
     version   = "latest"
   }
 
+  storage_os_disk {
+    name              = "${config.name}_os_disk"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+    disk_size_gb      = ${config.storageSize}
+  }
+
   os_profile {
-    computer_name  = "${server.name}"
+    computer_name  = "${config.name}"
     admin_username = "adminuser"
-    admin_password = "AdminPassword123!"
+    admin_password = "P@ssw0rd1234!"
   }
 
   os_profile_linux_config {
@@ -238,42 +214,59 @@ resource "azurerm_virtual_machine" "vm_${index + 1}" {
   }
 
   tags = {
-    environment = "Terraform"
+    environment = "staging"
   }
 }
 
-resource "azurerm_managed_disk" "data_disk_${index + 1}" {
-  name                 = "${server.name}-data-disk"
-  location             = azurerm_resource_group.rg.location
-  resource_group_name  = azurerm_resource_group.rg.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = ${server.storageSize}
-}
+resource "azurerm_network_interface" "nic_${index + 1}" {
+  name                = "${config.name}_nic"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 
-resource "azurerm_virtual_machine_data_disk_attachment" "data_disk_attach_${index + 1}" {
-  managed_disk_id    = azurerm_managed_disk.data_disk_${index + 1}.id
-  virtual_machine_id = azurerm_virtual_machine.vm_${index + 1}.id
-  lun                = 0
-  caching            = "ReadWrite"
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.subnet.id
+    private_ip_address_allocation = "Dynamic"
+  }
 }
-
 `;
         });
 
-        terraformConfig += `
-output "admin_username" {
-  value = azurerm_virtual_machine.vm_1.os_profile.0.admin_username
+        return `
+provider "azurerm" {
+  features = {}
 }
-`;
 
-        if (additionalSoftware) {
-          terraformConfig += `
-# Añadir el siguiente software adicional: ${additionalSoftware}
-`;
-        }
+resource "azurerm_resource_group" "rg" {
+  name     = "myResourceGroup"
+  location = "East US"
+}
 
-        return terraformConfig;
+resource "azurerm_virtual_network" "vnet" {
+  name                = "myVnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_subnet" "subnet" {
+  name                 = "mySubnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+${serverResources}
+
+output "admin_password" {
+  value = "P@ssw0rd1234!"
+}
+
+${additionalSoftware ? `
+# Additional Software Installation
+# This can be added to the provisioned VMs as needed
+` : ''}
+`;
       }
     });
   </script>
