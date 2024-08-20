@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador de Script de Provisión de VM en Azure (PowerShell)</title>
+  <title>Generador de Script de Provisión de VM en Azure VMware Solution</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
   <style>
     .table-responsive {
@@ -49,7 +49,7 @@
 </head>
 <body>
   <div class="max-w-7xl mx-auto p-8">
-    <h1 class="text-3xl font-bold mb-8 text-center">Generador de Script de Provisión de VM en Azure (PowerShell)</h1>
+    <h1 class="text-3xl font-bold mb-8 text-center">Generador de Script de Provisión de VM en Azure VMware Solution</h1>
     <div class="bg-white rounded-xl shadow-md overflow-hidden">
       <div class="p-8">
         <h2 class="text-xl font-semibold mb-4">Solicitud de Máquina Virtual</h2>
@@ -78,7 +78,7 @@
     <div id="scriptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
       <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Script PowerShell Generado</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Script de PowerShell Generado</h3>
           <div class="mt-2 px-7 py-3">
             <pre id="modalScriptContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
           </div>
@@ -111,31 +111,30 @@
       generateButton.addEventListener('click', () => {
         const vmCount = parseInt(vmCountInput.value, 10) || 0;
         const additionalSoftware = document.getElementById('additional-software').value;
-        
+
         if (vmCount <= 0) {
           alert("Por favor, ingrese un número válido de servidores.");
           return;
         }
-        
+
         const serverConfigs = [];
         for (let i = 1; i <= vmCount; i++) {
-          const serverName = document.getElementById(`server-name-${i}`).value || `vm-${i}`;
+          const serverName = document.getElementById(`server-name-${i}`).value || `VM-${i}`;
           const osType = document.getElementById(`os-type-${i}`).value;
           const storageSize = document.getElementById(`storage-size-${i}`).value;
           const ramSize = document.getElementById(`ram-size-${i}`).value;
-          const cores = document.getElementById(`cores-${i}`).value;
 
           if (!osType || !storageSize || !ramSize) {
             alert("Por favor, complete todos los campos obligatorios.");
             return;
           }
-          
-          serverConfigs.push({ name: serverName, osType, storageSize, ramSize, cores });
+
+          serverConfigs.push({ name: serverName, osType, storageSize, ramSize });
         }
 
-        const powershellScript = generatePowerShellScript(vmCount, serverConfigs, additionalSoftware);
-        modalScriptContent.textContent = powershellScript;
-        downloadLink.href = `data:text/plain;charset=utf-8,${encodeURIComponent(powershellScript)}`;
+        const psScript = generatePowerShellScript(vmCount, serverConfigs, additionalSoftware);
+        modalScriptContent.textContent = psScript;
+        downloadLink.href = `data:text/plain;charset=utf-8,${encodeURIComponent(psScript)}`;
         downloadLink.download = 'provisionamiento-vm-azure.ps1';
 
         downloadSection.classList.remove('hidden');
@@ -151,9 +150,9 @@
           serverFieldsContainer.innerHTML = '';
           return;
         }
-        
-        let rowsHtml = 
-          `<div class="table-responsive">
+
+        let rowsHtml = `
+          <div class="table-responsive">
             <table class="dynamic-table">
               <thead>
                 <tr>
@@ -161,13 +160,13 @@
                   <th>Sistema Operativo</th>
                   <th>Almacenamiento (GB)</th>
                   <th>Memoria RAM (GB)</th>
-                  <th>Cantidad de Núcleos</th>
                 </tr>
               </thead>
-              <tbody>`;
+              <tbody>
+        `;
         for (let i = 1; i <= count; i++) {
-          rowsHtml += 
-            `<tr>
+          rowsHtml += `
+            <tr>
               <td><input type="text" id="server-name-${i}" name="server-name-${i}" placeholder="Nombre del servidor" required></td>
               <td>
                 <select id="os-type-${i}" name="os-type-${i}" required>
@@ -178,8 +177,8 @@
               </td>
               <td><input type="number" id="storage-size-${i}" name="storage-size-${i}" placeholder="Tamaño en GB" min="1" required></td>
               <td><input type="number" id="ram-size-${i}" name="ram-size-${i}" placeholder="Memoria RAM en GB" min="1" required></td>
-              <td><input type="number" id="cores-${i}" name="cores-${i}" placeholder="Cantidad de Núcleos" min="1"></td>
-            </tr>`;
+            </tr>
+          `;
         }
         rowsHtml += `</tbody></table></div>`;
         serverFieldsContainer.innerHTML = rowsHtml;
@@ -187,36 +186,62 @@
 
       function generatePowerShellScript(vmCount, serverConfigs, additionalSoftware) {
         let script = `
-# Variables
-$resourceGroupName = "<RESOURCE_GROUP_NAME>"
-$location = "<LOCATION>"
+# Importar el módulo de Az.VMware si no está ya importado
+Import-Module Az.VMware -ErrorAction SilentlyContinue
 
-# Crear servidores
-`;
+# Parámetros
+\$VMCount = ${vmCount}
+\$AdditionalSoftware = "${additionalSoftware}"
 
-        serverConfigs.forEach((config) => {
-          script += `
-New-AzVM -ResourceGroupName $resourceGroupName `
-+ `-Name "${config.name}" `
-+ `-Location $location `
-+ `-VirtualNetworkId "<VNET_ID>" `
-+ `-SubnetId "<SUBNET_ID>" `
-+ `-ImageName "${config.osType === 'windows' ? 'Win2019Datacenter' : 'UbuntuLTS'}" `
-+ `-Size "Standard_DS${config.cores}_v2" `
-+ `-DiskSizeInGB ${config.storageSize} `
-+ `-Credential (Get-Credential) `
-+ `-PublicIpAddressName "${config.name}-ip" `
-+ `-OpenPorts 3389,22 # Ajustar puertos según necesidad\n`;
-        });
+# Configuración de Azure VMware Solution
+\$ResourceGroupName = "YourResourceGroupName"
+\$PrivateCloudName = "YourPrivateCloudName"
+\$ClusterName = "YourClusterName"
 
-        if (additionalSoftware) {
-          script += `
-# Instalación de software adicional
-Write-Output "Instalando software adicional..."
-# Aquí se añadirían los comandos específicos para instalar el software adicional
-# Ejemplo: Install-Package -Name "${additionalSoftware}"\n`;
+# Configuración de logging
+\$LogFile = "C:\\Logs\\VMCreation_\$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+function Write-Log {
+    param([string]\$Message)
+    \$LogMessage = "\$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - \$Message"
+    Add-Content -Path \$LogFile -Value \$LogMessage
+    Write-Host \$LogMessage
+}
+
+try {
+    # Conectar a Azure (modificar según necesidad)
+    Connect-AzAccount
+
+    # Crear máquinas virtuales
+    for (\$i = 0; \$i -lt \$VMCount; \$i++) {
+        \$serverConfig = @{
+            Name = "${serverConfigs[\$i].name}"
+            OS = "${serverConfigs[\$i].osType}"
+            StorageSize = "${serverConfigs[\$i].storageSize}"
+            RAMSize = "${serverConfigs[\$i].ramSize}"
         }
+        Write-Log "Creando VM: \$($serverConfig.Name)"
+        # Aquí agregar los comandos para crear la VM en AVS
+        # Ejemplo:
+        # New-AzVM -ResourceGroupName \$ResourceGroupName -Location "East US" -VMName \$serverConfig.Name -Size "Standard_DS1_v2" -ImageName "\$serverConfig.OS" -StorageSizeGB \$serverConfig.StorageSize -MemorySizeGB \$serverConfig.RAMSize
 
+        # Simular creación
+        Start-Sleep -Seconds 5
+        Write-Log "VM \$($serverConfig.Name) creada con éxito."
+    }
+
+    # Instalación de software adicional (modificar según necesidad)
+    if (\$AdditionalSoftware) {
+        Write-Log "Instalando software adicional: \$AdditionalSoftware"
+        # Aquí agregar los comandos para instalar el software adicional
+        # Ejemplo:
+        # Install-AdditionalSoftware -SoftwareName \$AdditionalSoftware
+    }
+
+    Write-Log "Proceso de provisión completado."
+} catch {
+    Write-Log "Error: \$($_.Exception.Message)"
+}
+        `;
         return script;
       }
     });
