@@ -47,3 +47,7 @@ input[type="submit"] {
 input[type="submit"]:hover {
     background-color: #45a049;
 }
+
+server-row {
+    margin-bottom: 1rem;
+}
