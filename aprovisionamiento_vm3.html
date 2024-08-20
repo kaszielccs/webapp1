@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Máquina Virtual</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        input[type="submit"], 
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        input[type="submit"]:hover, 
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Solicitud de Máquina Virtual</h1>
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl">
+        <div class="md:flex">
+            <div class="p-8">
+                <div class="uppercase tracking-wide text-sm text-indigo-500 font-semibold">Solicitud de Máquina Virtual</div>
+                <form id="vmForm" class="mt-4">
+                    <div class="mb-4">
+                        <label for="vmCount" class="block text-gray-700 text-sm font-bold mb-2">Cantidad de servidores:</label>
+                        <input type="number" id="vmCount" name="vmCount" min="1" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="mb-4">
+                        <label for="os" class="block text-gray-700 text-sm font-bold mb-2">Sistema Operativo:</label>
+                        <select id="os" name="os" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="">Seleccione SO</option>
+                            <option value="Windows">Windows Server</option>
+                            <option value="Linux">Linux</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="storage" class="block text-gray-700 text-sm font-bold mb-2">Almacenamiento (GB):</label>
+                        <input type="number" id="storage" name="storage" min="1" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="mb-4">
+                        <label for="memory" class="block text-gray-700 text-sm font-bold mb-2">Memoria RAM (GB):</label>
+                        <input type="number" id="memory" name="memory" min="1" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="mb-4">
+                        <label for="software" class="block text-gray-700 text-sm font-bold mb-2">Software adicional:</label>
+                        <textarea id="software" name="software" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            Generar Script
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="scriptOutput" class="mt-8 max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl hidden">
+        <div class="p-8">
+            <h2 class="text-xl font-semibold mb-4">Script de PowerShell Generado:</h2>
+            <pre id="powershellScript" class="bg-gray-100 p-4 rounded overflow-x-auto"></pre>
+            <button id="copyButton" class="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Copiar al portapapeles
+            </button>
+            <a id="downloadButton" href="#" download="VM_Creation.ps1" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Descargar Script
+            </a>
+        </div>
+    </div>
+
+    <script>
+    document.getElementById('vmForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const vmSpec = Object.fromEntries(formData.entries());
+        
+        const powershellScript = generatePowerShellScript(vmSpec);
+        
+        document.getElementById('powershellScript').textContent = powershellScript;
+        document.getElementById('scriptOutput').classList.remove('hidden');
+
+        const blob = new Blob([powershellScript], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        document.getElementById('downloadButton').href = url;
+    });
+
+    document.getElementById('copyButton').addEventListener('click', function() {
+        const scriptText = document.getElementById('powershellScript').textContent;
+        navigator.clipboard.writeText(scriptText).then(function() {
+            alert('Script copiado al portapapeles');
+        }, function(err) {
+            console.error('Error al copiar el script: ', err);
+        });
+    });
+
+    function generatePowerShellScript(vmSpec) {
+        return `
+# Conectarse a Azure
+Connect-AzAccount -TenantId (Read-Host -Prompt 'Introduce tu Tenant ID') -SubscriptionId (Read-Host -Prompt 'Introduce tu Subscription ID') -ErrorAction Stop
+
+# Importar el módulo de Az.VMware si no está ya importado
+Import-Module Az.VMware -ErrorAction SilentlyContinue
+
+# Parámetros
+$VMCount = ${vmSpec.vmCount}
+$OS = "${vmSpec.os}"
+$StorageGB = ${vmSpec.storage}
+$MemoryGB = ${vmSpec.memory}
+$AdditionalSoftware = "${vmSpec.software}"
+
+# Configuración de Azure VMware Solution
+$ResourceGroupName = "YourResourceGroupName"
+$PrivateCloudName = "YourPrivateCloudName"
+$ClusterName = "YourClusterName"
+
+# Configuración de logging
+$LogFile = "C:\\Logs\\VMCreation_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+function Write-Log {
+    param([string]$Message)
+    $LogMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - $Message"
+    Add-Content -Path $LogFile -Value $LogMessage
+    Write-Host $LogMessage
+}
+
+try {
+    # Obtener el cluster
+    Write-Log "Obteniendo información del cluster..."
+    $cluster = Get-AzVMwareCluster -ResourceGroupName $ResourceGroupName -PrivateCloudName $PrivateCloudName -Name $ClusterName -ErrorAction Stop
+
+    # Función para crear una VM
+    function Create-AzureVMwareVM {
+        param(
+            [string]$VMName,
+            [string]$OS,
+            [int]$StorageGB,
+            [int]$MemoryGB
+        )
+
+        # Definir la plantilla de VM basada en el OS
+        $template = if ($OS -eq "Windows") {
+            "Windows Server 2019"
+        } else {
+            "Ubuntu 20.04"
+        }
+
+        Write-Log "Creando VM: $VMName con OS: $OS, Storage: $StorageGB GB, Memory: $MemoryGB GB"
+        
+        # Crear la VM
+        New-AzVMwareVirtualMachine `
+            -ResourceGroupName $ResourceGroupName `
+            -PrivateCloudName $PrivateCloudName `
+            -ClusterName $ClusterName `
+            -Name $VMName `
+            -Template $template `
+            -NumCpu 2 `
+            -MemorySizeMB ($MemoryGB * 1024) `
+            -DiskSizeGB $StorageGB `
+            -NetworkName "YourNetworkName" `
+            -Folder "YourFolderName" `
+            -ResourcePool "YourResourcePool"
+
+        if ($AdditionalSoftware) {
+            Write-Log "Instalando software adicional: $AdditionalSoftware"
+            # Lógica para instalar el software adicional (dependiendo del sistema operativo y necesidades específicas)
+        }
+    }
+
+    for ($i = 1; $i -le $VMCount; $i++) {
+        $VMName = "VM_$i"
+        Create-AzureVMwareVM -VMName $VMName -OS $OS -StorageGB $StorageGB -MemoryGB $MemoryGB
+    }
+
+    Write-Log "Creación de máquinas virtuales completada con éxito."
+} catch {
+    Write-Log "Error: $_"
+    throw $_
+}
+        `;
+    }
+</script>
