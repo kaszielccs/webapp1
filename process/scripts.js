@@ -71,4 +71,32 @@ document.addEventListener('DOMContentLoaded', () => {
     exampleContent.textContent = exampleContentText;
     exampleSection.classList.remove('hidden');
   }
+
+  function loadProperties(scriptType) {
+  fetch(`${scriptType}.properties`)
+    .then(response => response.text())
+    .then(data => {
+      const properties = data.split('\n').reduce((acc, line) => {
+        const [key, value] = line.split('=');
+        if (key && value) acc[key.trim()] = value.trim();
+        return acc;
+      }, {});
+
+      populateForm(properties);
+    });
+}
+
+function populateForm(properties) {
+  // Supón que tienes elementos en el formulario con IDs específicos
+  document.getElementById('provider').value = properties.provider || '';
+  document.getElementById('resource_group_name').value = properties.resource_group_name || '';
+  document.getElementById('location').value = properties.location || '';
+  document.getElementById('vm_size').value = properties.vm_size || '';
+  document.getElementById('admin_username').value = properties.admin_username || '';
+  document.getElementById('admin_password').value = properties.admin_password || '';
+  document.getElementById('network_interface_name').value = properties.network_interface_name || '';
+  document.getElementById('storage_account_name').value = properties.storage_account_name || '';
+  // Añadir otros campos según sea necesario
+}
+
 });
