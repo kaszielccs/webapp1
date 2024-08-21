@@ -4,25 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Generador de Scripts para Aprovisionamiento de Máquinas</title>
-  <link href="css/style.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="container">
     <h1 class="title">Generador de Scripts para Aprovisionamiento de Máquinas</h1>
-    <div class="selector">
-      <button onclick="showScriptForm('terraform')">Terraform</button>
-      <button onclick="showScriptForm('arm')">ARM</button>
-      <button onclick="showScriptForm('powershell-avs')">PowerShell AVS</button>
-      <button onclick="showScriptForm('powershell')">PowerShell</button>
+    
+    <div class="buttons">
+      <button id="terraform-btn" class="btn">Terraform</button>
+      <button id="arm-btn" class="btn">ARM</button>
+      <button id="powershell-avs-btn" class="btn">PowerShell AVS</button>
+      <button id="powershell-btn" class="btn">PowerShell</button>
     </div>
-    <div id="scriptSection" class="form-section">
-      <h2 id="scriptTitle">Selecciona una estrategia</h2>
-      <div id="dynamicForm"></div>
-      <div id="exampleSection" class="example-section hidden"></div>
-      <button id="generateButton" class="generate-button">Generar Script</button>
+    
+    <div id="script-form-section" class="form-section hidden">
+      <h2 id="script-title" class="subtitle"></h2>
+      <form id="script-form">
+        <label for="vm-count">Número de Servidores:</label>
+        <input type="number" id="vm-count" name="vm-count" class="input" min="1" required>
+        <div id="server-fields" class="server-fields"></div>
+        <label for="additional-software">Software Adicional:</label>
+        <input type="text" id="additional-software" name="additional-software" class="input">
+        <button type="button" id="generate-button" class="btn">Generar Script</button>
+      </form>
+      <div id="example-section" class="example-section hidden">
+        <h3 class="subtitle">Ejemplo de Ejecución</h3>
+        <pre id="example-code" class="code"></pre>
+      </div>
+    </div>
+    
+    <div id="download-section" class="hidden">
+      <h3 class="subtitle">Descargar Script</h3>
+      <a id="download-link" href="#" class="btn">Descargar Script</a>
+    </div>
+    
+    <div id="script-modal" class="modal hidden">
+      <div class="modal-content">
+        <h3 class="modal-title">Plantilla Generada</h3>
+        <pre id="modal-script-content" class="code"></pre>
+        <button id="close-modal" class="btn">Cerrar</button>
+      </div>
     </div>
   </div>
-
-  <script src="process/scripts.js"></script>
+  
+  <script src="scripts.js"></script>
 </body>
 </html>
