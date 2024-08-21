@@ -8,19 +8,18 @@
 </head>
 <body>
   <div class="container">
-    <h1>Generador de Scripts para Aprovisionamiento de Máquinas</h1>
-    <div class="buttons">
-      <button data-script="terraform">Terraform</button>
-      <button data-script="arm">ARM</button>
-      <button data-script="powershell-avs">PowerShell AVS</button>
-      <button data-script="powershell">PowerShell</button>
+    <h1 class="title">Generador de Scripts para Aprovisionamiento de Máquinas</h1>
+    <div class="selector">
+      <button onclick="showScriptForm('terraform')">Terraform</button>
+      <button onclick="showScriptForm('arm')">ARM</button>
+      <button onclick="showScriptForm('powershell-avs')">PowerShell AVS</button>
+      <button onclick="showScriptForm('powershell')">PowerShell</button>
     </div>
-    <div id="form-container">
-      <!-- Aquí se cargará el formulario dinámicamente -->
-    </div>
-    <div id="example-section" class="hidden">
-      <h2 id="example-title"></h2>
-      <pre id="example-content"></pre>
+    <div id="scriptSection" class="form-section">
+      <h2 id="scriptTitle">Selecciona una estrategia</h2>
+      <div id="dynamicForm"></div>
+      <div id="exampleSection" class="example-section hidden"></div>
+      <button id="generateButton" class="generate-button">Generar Script</button>
     </div>
   </div>
 
