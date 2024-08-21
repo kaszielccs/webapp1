@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const terraformBtn = document.getElementById('terraform-btn');
-  const armBtn = document.getElementById('arm-btn');
-  const powershellAvsBtn = document.getElementById('powershell-avs-btn');
-  const powershellBtn = document.getElementById('powershell-btn');
+  const generateTerraform = document.getElementById('generate-terraform');
+  const generateArm = document.getElementById('generate-arm');
+  const generatePowershellAvs = document.getElementById('generate-powershell-avs');
+  const generatePowershell = document.getElementById('generate-powershell');
   const scriptFormSection = document.getElementById('script-form-section');
   const scriptTitle = document.getElementById('script-title');
   const exampleSection = document.getElementById('example-section');
   const exampleCode = document.getElementById('example-code');
-  const generateButton = document.getElementById('generate-button');
+  const generateButtons = document.getElementById('script-buttons');
   const downloadSection = document.getElementById('download-section');
   const downloadLink = document.getElementById('download-link');
   const scriptModal = document.getElementById('script-modal');
@@ -19,9 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     scriptTitle.textContent = `Script para ${scriptType}`;
     exampleCode.textContent = getExampleCode(scriptType);
     exampleSection.classList.remove('hidden');
-    generateButton.onclick = () => generateScript(scriptType);
+    generateButtons.classList.remove('hidden');
     serverFieldsContainer.innerHTML = getServerFieldsHtml();
-    downloadSection.classList.add('hidden');
   }
 
   function getExampleCode(scriptType) {
@@ -79,7 +78,27 @@ document.addEventListener('DOMContentLoaded', () => {
     return `Generated ${scriptType} script content...`; // Replace with actual content generation
   }
 
-  terraformBtn.addEventListener('click', () => updateFormAndExample('Terraform'));
-  armBtn.addEventListener('click', () => updateFormAndExample('ARM'));
-  powershellAvsBtn.addEventListener('click', () => updateFormAndExample('PowerShell AVS'));
-  powershellBtn.addEventListener('click', () => updateFormAndExample('Power
+  generateTerraform.addEventListener('click', () => {
+    updateFormAndExample('Terraform');
+    generateScript('Terraform');
+  });
+  
+  generateArm.addEventListener('click', () => {
+    updateFormAndExample('ARM');
+    generateScript('ARM');
+  });
+  
+  generatePowershellAvs.addEventListener('click', () => {
+    updateFormAndExample('PowerShell AVS');
+    generateScript('PowerShell AVS');
+  });
+  
+  generatePowershell.addEventListener('click', () => {
+    updateFormAndExample('PowerShell');
+    generateScript('PowerShell');
+  });
+
+  closeModal.addEventListener('click', () => {
+    scriptModal.classList.add('hidden');
+  });
+});
