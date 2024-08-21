@@ -90,6 +90,26 @@
         </div>
       </div>
     </div>
+
+    <div class="mt-8">
+      <h2 class="text-xl font-semibold mb-4">Cómo Ejecutar el Script</h2>
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <p class="mb-4">Para ejecutar el script de ARM que has generado, sigue estos pasos:</p>
+        <ol class="list-decimal list-inside mb-4">
+          <li><strong>Guarda el archivo:</strong> Descarga el archivo JSON generado haciendo clic en el botón "Descargar Plantilla ARM". Guarda el archivo en una ubicación accesible en tu máquina.</li>
+          <li><strong>Inicia sesión en Azure:</strong> Abre una terminal o consola de comandos y asegúrate de que estás autenticado en tu cuenta de Azure con el siguiente comando:</li>
+          <pre class="bg-gray-100 p-4 rounded overflow-x-auto">az login</pre>
+          <li><strong>Selecciona el grupo de recursos:</strong> Verifica que estés en el grupo de recursos correcto o crea uno nuevo si es necesario. Puedes seleccionar el grupo de recursos con el siguiente comando:</li>
+          <pre class="bg-gray-100 p-4 rounded overflow-x-auto">az group create --name <RESOURCE_GROUP_NAME> --location <LOCATION></pre>
+          <li><strong>Implementa el template ARM:</strong> Ejecuta el siguiente comando para desplegar el template ARM en Azure. Reemplaza `<LOCATION>` y `<RESOURCE_GROUP_NAME>` con los valores adecuados para tu entorno:</li>
+          <pre class="bg-gray-100 p-4 rounded overflow-x-auto">az deployment group create --resource-group <RESOURCE_GROUP_NAME> --template-file <ruta-al-archivo-json> --parameters adminUsername=<ADMIN_USERNAME> adminPassword=<ADMIN_PASSWORD></pre>
+          <li><strong>Verifica el despliegue:</strong> Una vez que el despliegue haya finalizado, puedes verificar el estado y los detalles de las máquinas virtuales desplegadas con el siguiente comando:</li>
+          <pre class="bg-gray-100 p-4 rounded overflow-x-auto">az vm list --resource-group <RESOURCE_GROUP_NAME> --output table</pre>
+        </ol>
+        <p class="text-sm text-gray-500">Nota: Asegúrate de tener configurado Azure CLI en tu máquina para ejecutar estos comandos.</p>
+      </div>
+    </div>
+            
   </div>
 
   <script>
