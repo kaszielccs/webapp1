@@ -1,49 +1,64 @@
-/* General styles */
+/* styles.css */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
 .container {
   max-width: 1200px;
-  margin: auto;
+  margin: 0 auto;
   padding: 20px;
 }
 
-h1 {
+.title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.selector {
   text-align: center;
   margin-bottom: 20px;
 }
 
-.buttons {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.buttons button {
-  margin: 0 10px;
+.selector button {
   padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
+  margin: 5px;
+  font-size: 1rem;
   cursor: pointer;
 }
 
-.buttons button:hover {
-  background-color: #0056b3;
-  color: white;
+.form-section {
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 8px;
 }
 
-#form-container {
-  margin-bottom: 20px;
+.generate-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.generate-button:hover {
+  background-color: #0056b3;
 }
 
 .hidden {
   display: none;
 }
 
-#example-section {
+.example-section {
   margin-top: 20px;
+}
+
+.example-section pre {
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 4px;
 }
