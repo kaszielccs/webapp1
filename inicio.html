@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Scripts para Aprovisionamiento de Máquinas</title>
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <h1>Generador de Scripts para Aprovisionamiento de Máquinas</h1>
+    <div class="buttons">
+      <button data-script="terraform">Terraform</button>
+      <button data-script="arm">ARM</button>
+      <button data-script="powershell-avs">PowerShell AVS</button>
+      <button data-script="powershell">PowerShell</button>
+    </div>
+    <div id="form-container">
+      <!-- Aquí se cargará el formulario dinámicamente -->
+    </div>
+    <div id="example-section" class="hidden">
+      <h2 id="example-title"></h2>
+      <pre id="example-content"></pre>
+    </div>
+  </div>
+
+  <script src="process/scripts.js"></script>
+</body>
+</html>
