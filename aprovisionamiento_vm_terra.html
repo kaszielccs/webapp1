@@ -90,6 +90,25 @@
         </div>
       </div>
     </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden mt-8">
+      <div class="p-8">
+        <h2 class="text-xl font-semibold mb-4">Ejemplo de Ejecución del Script</h2>
+        <p class="mb-4">Para ejecutar el script generado y aprovisionar las máquinas virtuales en Azure, sigue los siguientes pasos:</p>
+        <ol class="list-decimal list-inside">
+          <li class="mb-2">Descarga el script generado haciendo clic en el botón "Descargar Configuración de Terraform".</li>
+          <li class="mb-2">Abre una terminal en tu máquina local y navega hasta el directorio donde descargaste el archivo.</li>
+          <li class="mb-2">Asegúrate de tener <a href="https://www.terraform.io/downloads.html" class="text-blue-600 underline" target="_blank">Terraform instalado</a> en tu máquina.</li>
+          <li class="mb-2">Inicia sesión en tu cuenta de Azure usando el comando: <code class="bg-gray-100 p-1 rounded">az login</code></li>
+          <li class="mb-2">Inicializa el directorio de trabajo de Terraform con el siguiente comando:</li>
+          <pre class="bg-gray-100 p-2 rounded mb-4"><code>terraform init</code></pre>
+          <li class="mb-2">Aplica la configuración de Terraform para aprovisionar las máquinas virtuales ejecutando:</li>
+          <pre class="bg-gray-100 p-2 rounded mb-4"><code>terraform apply</code></pre>
+          <li class="mb-2">Revisa los cambios que se aplicarán y confirma la ejecución escribiendo "<code class="bg-gray-100 p-1 rounded">yes</code>" cuando se te solicite.</li>
+        </ol>
+        <p class="mt-4">Una vez que el proceso de aprovisionamiento haya finalizado, podrás ver las máquinas virtuales creadas en tu cuenta de Azure.</p>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -166,83 +185,95 @@
               </thead>
               <tbody>
         `;
+
         for (let i = 1; i <= count; i++) {
           rowsHtml += `
             <tr>
-              <td><input type="text" id="server-name-${i}" name="server-name-${i}" placeholder="Nombre del servidor" required></td>
+              <td><input type="text" id="server-name-${i}" placeholder="vm-${i}"></td>
               <td>
-                <select id="os-type-${i}" name="os-type-${i}" required>
-                  <option value="">Seleccionar SO</option>
-                  <option value="windows">Windows Server</option>
-                  <option value="linux">Linux</option>
+                <select id="os-type-${i}" required>
+                  <option value="">Seleccionar</option>
+                  <option value="Windows">Windows</option>
+                  <option value="Linux">Linux</option>
                 </select>
               </td>
-              <td><input type="number" id="storage-size-${i}" name="storage-size-${i}" placeholder="Tamaño en GB" min="1" required></td>
-              <td><input type="number" id="ram-size-${i}" name="ram-size-${i}" placeholder="Memoria RAM en GB" min="1" required></td>
-              <td><input type="number" id="cores-${i}" name="cores-${i}" placeholder="Cantidad de Núcleos" min="1"></td>
+              <td><input type="number" id="storage-size-${i}" placeholder="Tamaño del Almacenamiento" required></td>
+              <td><input type="number" id="ram-size-${i}" placeholder="Tamaño de la RAM" required></td>
+              <td><input type="number" id="cores-${i}" placeholder="Cantidad de Núcleos"></td>
             </tr>
           `;
         }
-        rowsHtml += `</tbody></table></div>`;
+
+        rowsHtml += `
+              </tbody>
+            </table>
+          </div>
+        `;
+
         serverFieldsContainer.innerHTML = rowsHtml;
       }
 
-      function generateTerraformConfig(vmCount, serverConfigs, additionalSoftware) {
-        let serverResources = '';
-        serverConfigs.forEach((config, index) => {
-          serverResources += `
-resource "azurerm_virtual_machine" "vm_${index}" {
-  name = "${config.name}"
-  resource_group_name = "<RESOURCE_GROUP_NAME>"
-  location = "<LOCATION>"
-  size = "Standard_DS${config.cores}_v2"
-  network_interface_ids = ["<NIC_ID>"]
+      function generateTerraformConfig(count, configs, additionalSoftware) {
+        let config = `# Script de Provisión de VM en Azure (Terraform)\n\n`;
 
-  storage_os_disk {
-    name              = "${config.name}_os_disk"
-    caching           = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-    disk_size_gb      = "${config.storageSize}"
-  }
+        configs.forEach(({ name, osType, storageSize, ramSize, cores }, index) => {
+          config += `resource "azurerm_virtual_machine" "vm_${index + 1}" {\n`;
+          config += `  name                  = "${name}"\n`;
+          config += `  location              = azurerm_resource_group.rg.location\n`;
+          config += `  resource_group_name   = azurerm_resource_group.rg.name\n`;
+          config += `  network_interface_ids = [azurerm_network_interface.nic_${index + 1}.id]\n`;
+          config += `  vm_size               = "${cores ? `Standard_D${cores}ds_v3` : 'Standard_DS1_v2'}"\n\n`;
 
-  storage_data_disk {
-    count             = 1
-    size              = "${config.storageSize}"
-    create_option     = "Empty"
-  }
+          if (osType === 'Windows') {
+            config += `  storage_image_reference {\n`;
+            config += `    publisher = "MicrosoftWindowsServer"\n`;
+            config += `    offer     = "WindowsServer"\n`;
+            config += `    sku       = "2019-Datacenter"\n`;
+            config += `    version   = "latest"\n`;
+            config += `  }\n\n`;
+          } else {
+            config += `  storage_image_reference {\n`;
+            config += `    publisher = "Canonical"\n`;
+            config += `    offer     = "UbuntuServer"\n`;
+            config += `    sku       = "18.04-LTS"\n`;
+            config += `    version   = "latest"\n`;
+            config += `  }\n\n`;
+          }
 
-  os_profile {
-    computer_name     = "${config.name}"
-    admin_username    = "<ADMIN_USERNAME>"
-    admin_password    = "<ADMIN_PASSWORD>"
-    operating_system  = "${config.osType}"
-  }
+          config += `  storage_os_disk {\n`;
+          config += `    name              = "${name}_os_disk"\n`;
+          config += `    caching           = "ReadWrite"\n`;
+          config += `    create_option     = "FromImage"\n`;
+          config += `    managed_disk_type = "Standard_LRS"\n`;
+          config += `    disk_size_gb      = "${storageSize}"\n`;
+          config += `  }\n\n`;
 
-  os_profile_windows_config {
-    provision_vm_agent = true
-    enable_automatic_upgrades = true
-  }
+          config += `  os_profile {\n`;
+          config += `    computer_name  = "${name}"\n`;
+          config += `    admin_username = "azureuser"\n`;
+          config += `    admin_password = "P@ssw0rd1234"\n`;
+          config += `  }\n\n`;
 
-  tags = {
-    environment = "dev"
-  }
-}
-          `;
+          config += `  os_profile_windows_config {\n`;
+          config += `    provision_vm_agent        = true\n`;
+          config += `    enable_automatic_updates  = true\n`;
+          config += `  }\n\n`;
+
+          config += `  os_profile_linux_config {\n`;
+          config += `    disable_password_authentication = false\n`;
+          config += `  }\n\n`;
+
+          config += `  tags = {\n`;
+          config += `    environment = "Terraform"\n`;
+          config += `  }\n`;
+          config += `}\n\n`;
         });
 
-        return `
-# Configuración de Terraform para provisión de máquinas virtuales en Azure
+        if (additionalSoftware) {
+          config += `# Software adicional: ${additionalSoftware}\n`;
+        }
 
-provider "azurerm" {
-  features {}
-}
-
-${serverResources}
-
-output "vm_ids" {
-  value = [for vm in azurerm_virtual_machine.vm_*: vm.id]
-}
-        `;
+        return config;
       }
     });
   </script>
