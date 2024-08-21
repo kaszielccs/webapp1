@@ -92,6 +92,25 @@
     </div>
   </div>
 
+  <!-- Nueva Sección: Ejemplo de Ejecución del Script -->
+  <div class="bg-white rounded-xl shadow-md overflow-hidden mt-8 p-8">
+    <h2 class="text-xl font-semibold mb-4">Ejemplo de Ejecución del Script</h2>
+    <p class="mb-4">Una vez que hayas descargado el script de PowerShell generado, puedes ejecutarlo en tu entorno local siguiendo los pasos a continuación:</p>
+    
+    <ol class="list-decimal ml-6 mb-4">
+      <li class="mb-2">Abre <strong>PowerShell</strong> en tu máquina local.</li>
+      <li class="mb-2">Navega hasta el directorio donde descargaste el script utilizando el comando <code>cd</code>. Por ejemplo:
+        <pre class="bg-gray-100 p-2 rounded mt-2 mb-4">cd C:\Ruta\Al\Directorio\De\Descargas</pre>
+      </li>
+      <li class="mb-2">Ejecuta el script utilizando el comando:
+        <pre class="bg-gray-100 p-2 rounded mt-2 mb-4">.\provisionamiento-vm-azure.ps1</pre>
+      </li>
+      <li class="mb-2">Sigue las instrucciones en pantalla para completar el proceso de provisión de las máquinas virtuales en Azure VMware Solution.</li>
+    </ol>
+    
+    <p>Si el script requiere autenticación, asegúrate de ingresar tus credenciales de Azure cuando se te solicite.</p>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const vmCountInput = document.getElementById('vm-count');
