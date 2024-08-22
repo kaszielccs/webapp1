@@ -1,189 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitud de Máquina Virtual</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Ocultar la tabla dinámica por defecto */
-        #dynamicTable {
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Scripts para Aprovisionamiento de Máquinas</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="max-w-7xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8 text-center">Generador de Script para VM en Azure VMware Services</h1>
-        <div class="flex flex-col md:flex-row gap-8">
-            <!-- Columna izquierda: Formulario -->
-            <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="p-8">
-                    <h2 class="text-xl font-semibold mb-4">Solicitud de Máquina Virtual</h2>
-                    <form id="vmForm" class="space-y-4">
-                        <div>
-                            <label for="vmCount" class="block text-sm font-medium text-gray-700">Cantidad de servidores:</label>
-                            <input type="number" id="vmCount" name="vmCount" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                        </div>
-
-                        <!-- Tabla dinámica activada según la cantidad de servidores -->
-                        <div id="dynamicTable" class="mt-4">
-                            <h3 class="text-lg font-semibold mb-2">Especificaciones de los Servidores</h3>
-                            <table class="min-w-full bg-white border border-gray-300">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="border px-4 py-2 text-left">Servidor</th>
-                                        <th class="border px-4 py-2 text-left">Sistema Operativo</th>
-                                        <th class="border px-4 py-2 text-left">Capacidad (GB)</th>
-                                        <th class="border px-4 py-2 text-left">Memoria RAM (GB)</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableBody">
-                                    <!-- Las filas serán generadas dinámicamente -->
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div>
-                            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                Generar Script
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Columna derecha: Instrucciones y botón de descarga -->
-            <div class="w-full md:w-1/2 bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="p-8">
-                    <h2 class="text-xl font-semibold mb-4">Instrucciones de Ejecución</h2>
-                    <ol class="list-decimal list-inside space-y-2 mb-6">
-                        <li>Genera el script utilizando el formulario de la izquierda.</li>
-                        <li>Copia el script generado o descárgalo como archivo .ps1.</li>
-                        <li>Abre PowerShell como administrador.</li>
-                        <li>Asegúrate de tener instalado el módulo Az.VMware:</li>
-                        <pre class="bg-gray-100 p-2 rounded mt-2 mb-2">Install-Module -Name Az.VMware -Force</pre>
-                        <li>Ejecuta el script con el siguiente comando (reemplaza &lt;ruta_del_script&gt; con la ubicación real del archivo):</li>
-                        <pre class="bg-gray-100 p-2 rounded mt-2">.\&lt;ruta_del_script&gt;\Create-AzureVMwareVMs.ps1</pre>
-                    </ol>
-                    <div id="downloadSection" class="hidden">
-                        <h3 class="text-lg font-semibold mb-2">Descargar Script</h3>
-                        <button id="downloadButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Descargar Script PowerShell
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+<body>
+  <div class="container">
+    <h1 class="title">Generador de Scripts para Aprovisionamiento de Máquinas</h1>
+    
+    <div id="script-form-section" class="form-section">
+      <h2 id="script-title" class="subtitle">Selecciona un tipo de script para comenzar</h2>
+      <form id="script-form">
+        <label for="vm-count">Número de Servidores:</label>
+        <input type="number" id="vm-count" name="vm-count" class="input" min="1" required>
+        <div id="server-fields" class="server-fields"></div>
+        <label for="additional-software">Software Adicional:</label>
+        <input type="text" id="additional-software" name="additional-software" class="input">
+      </form>
+      
+      <div id="script-buttons" class="buttons hidden">
+        <button id="generate-terraform" class="btn">Generar Script Terraform</button>
+        <button id="generate-arm" class="btn">Generar Script ARM</button>
+        <button id="generate-powershell-avs" class="btn">Generar Script PowerShell AVS</button>
+        <button id="generate-powershell" class="btn">Generar Script PowerShell</button>
+      </div>
+      
+      <div id="example-section" class="example-section hidden">
+        <h3 class="subtitle">Ejemplo de Ejecución</h3>
+        <pre id="example-code" class="code"></pre>
+      </div>
+      
+      <div id="download-section" class="hidden">
+        <h3 class="subtitle">Descargar Script</h3>
+        <a id="download-link" href="#" class="btn">Descargar Script</a>
+      </div>
     </div>
-
-    <!-- Modal para mostrar el script -->
-    <div id="scriptModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div class="mt-3 text-center">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Script PowerShell Generado</h3>
-                <div class="mt-2 px-7 py-3">
-                    <pre id="modalScriptContent" class="bg-gray-100 p-4 rounded overflow-x-auto text-left"></pre>
-                </div>
-                <div class="items-center px-4 py-3">
-                    <button id="closeModal" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        Cerrar
-                    </button>
-                </div>
-            </div>
-        </div>
+    
+    <div id="script-modal" class="hidden" >
+      <div class="modal-content">
+        <h3 class="modal-title">Plantilla Generada</h3>
+        <pre id="modal-script-content" class="code"></pre>
+        <button id="close-modal" class="btn">Cerrar</button>
+      </div>
     </div>
-
-    <script>
-        const vmCountInput = document.getElementById('vmCount');
-        const dynamicTable = document.getElementById('dynamicTable');
-        const tableBody = document.getElementById('tableBody');
-
-        vmCountInput.addEventListener('input', function() {
-            const vmCount = parseInt(vmCountInput.value);
-
-            // Mostrar u ocultar la tabla dinámica dependiendo del valor ingresado
-            if (vmCount > 0) {
-                dynamicTable.style.display = 'block';
-                tableBody.innerHTML = ''; // Limpiar la tabla
-
-                // Crear filas dinámicamente basadas en el número de servidores
-                for (let i = 1; i <= vmCount; i++) {
-                    const row = document.createElement('tr');
-
-                    row.innerHTML = `
-                        <td class="border px-4 py-2">Servidor ${i}</td>
-                        <td class="border px-4 py-2">
-                            <select name="os${i}" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <option value="">Seleccione SO</option>
-                                <option value="Windows">Windows Server</option>
-                                <option value="Linux">Linux</option>
-                            </select>
-                        </td>
-                        <td class="border px-4 py-2">
-                            <input type="number" name="storage${i}" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                        </td>
-                        <td class="border px-4 py-2">
-                            <input type="number" name="memory${i}" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                        </td>
-                    `;
-
-                    tableBody.appendChild(row);
-                }
-            } else {
-                dynamicTable.style.display = 'none';
-                tableBody.innerHTML = ''; // Limpiar la tabla si la cantidad de servidores es 0
-            }
-        });
-
-        // Resto del código para manejar el formulario, mostrar el modal, y descargar el script...
-
-        document.getElementById('vmForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const vmSpec = Object.fromEntries(formData.entries());
-            
-            const powershellScript = generatePowerShellScript(vmSpec);
-            
-            // Mostrar el script en el modal
-            document.getElementById('modalScriptContent').textContent = powershellScript;
-            document.getElementById('scriptModal').classList.remove('hidden');
-
-            // Mostrar la sección de descarga
-            document.getElementById('downloadSection').classList.remove('hidden');
-        });
-
-        document.getElementById('closeModal').addEventListener('click', function() {
-            document.getElementById('scriptModal').classList.add('hidden');
-        });
-
-        document.getElementById('downloadButton').addEventListener('click', function() {
-            const scriptContent = document.getElementById('modalScriptContent').textContent;
-            const blob = new Blob([scriptContent], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'Create-AzureVMwareVMs.ps1';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        });
-
-        function generatePowerShellScript(vmSpec) {
-            let script = `# Script para crear ${vmSpec.vmCount} VM(s) en Azure VMware Services\n`;
-
-            for (let i = 1; i <= vmSpec.vmCount; i++) {
-                script += `\n# Configuración del Servidor ${i}\n`;
-                script += `$vmName${i} = "Servidor${i}"\n`;
-                script += `$os${i} = "${vmSpec[`os${i}`]}"\n`;
-                script += `$storage${i} = ${vmSpec[`storage${i}`]}GB\n`;
-                script += `$memory${i} = ${vmSpec[`memory${i}`]}GB\n`;
-                // Aquí puedes añadir más configuraciones necesarias
-            }
-
-            script += `\n# Añadir aquí el código para aprovisionar las VMs en Azure VMware Services\n`;
-            return script;
-        }
-    </script>
+  </div>
+  
+  <script src="process/scripts.js"></script>
 </body>
 </html>
