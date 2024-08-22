@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitud de Máquina Virtual</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ocultar la tabla dinámica por defecto */
+        #dynamicTable {
+            display: none;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 p-8">
     <div class="max-w-7xl mx-auto">
@@ -19,44 +25,25 @@
                             <label for="vmCount" class="block text-sm font-medium text-gray-700">Cantidad de servidores:</label>
                             <input type="number" id="vmCount" name="vmCount" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                         </div>
-                        <!-- Tabla dinámica para poblar valores según la cantidad de servidores -->
-                        <div id="dynamicTableContainer" class="hidden">
-                            <table class="min-w-full bg-white mt-4">
-                                <thead>
+
+                        <!-- Tabla dinámica activada según la cantidad de servidores -->
+                        <div id="dynamicTable" class="mt-4">
+                            <h3 class="text-lg font-semibold mb-2">Especificaciones de los Servidores</h3>
+                            <table class="min-w-full bg-white border border-gray-300">
+                                <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-600 uppercase tracking-wider">Servidor</th>
-                                        <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-600 uppercase tracking-wider">Nombre</th>
-                                        <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-600 uppercase tracking-wider">Cores</th>
-                                        <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-600 uppercase tracking-wider">Memoria</th>
-                                        <th class="px-6 py-3 border-b-2 border-gray-300 text-left text-sm leading-4 text-gray-600 uppercase tracking-wider">SO</th>
+                                        <th class="border px-4 py-2 text-left">Servidor</th>
+                                        <th class="border px-4 py-2 text-left">Sistema Operativo</th>
+                                        <th class="border px-4 py-2 text-left">Capacidad (GB)</th>
+                                        <th class="border px-4 py-2 text-left">Memoria RAM (GB)</th>
                                     </tr>
                                 </thead>
-                                <tbody id="dynamicTable">
-                                    <!-- Filas dinámicas generadas aquí -->
+                                <tbody id="tableBody">
+                                    <!-- Las filas serán generadas dinámicamente -->
                                 </tbody>
                             </table>
                         </div>
 
-                        <div>
-                            <label for="os" class="block text-sm font-medium text-gray-700">Sistema Operativo:</label>
-                            <select id="os" name="os" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <option value="">Seleccione SO</option>
-                                <option value="Windows">Windows Server</option>
-                                <option value="Linux">Linux</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="storage" class="block text-sm font-medium text-gray-700">Almacenamiento (GB):</label>
-                            <input type="number" id="storage" name="storage" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                        </div>
-                        <div>
-                            <label for="memory" class="block text-sm font-medium text-gray-700">Memoria RAM (GB):</label>
-                            <input type="number" id="memory" name="memory" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                        </div>
-                        <div>
-                            <label for="software" class="block text-sm font-medium text-gray-700">Software adicional:</label>
-                            <textarea id="software" name="software" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></textarea>
-                        </div>
                         <div>
                             <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                                 Generar Script
@@ -108,34 +95,95 @@
     </div>
 
     <script>
-        document.getElementById('vmCount').addEventListener('change', function() {
-            const vmCount = parseInt(this.value);
-            const dynamicTableContainer = document.getElementById('dynamicTableContainer');
-            const dynamicTable = document.getElementById('dynamicTable');
+        const vmCountInput = document.getElementById('vmCount');
+        const dynamicTable = document.getElementById('dynamicTable');
+        const tableBody = document.getElementById('tableBody');
 
-            // Limpiar la tabla antes de añadir nuevas filas
-            dynamicTable.innerHTML = '';
+        vmCountInput.addEventListener('input', function() {
+            const vmCount = parseInt(vmCountInput.value);
 
+            // Mostrar u ocultar la tabla dinámica dependiendo del valor ingresado
             if (vmCount > 0) {
-                dynamicTableContainer.classList.remove('hidden');
+                dynamicTable.style.display = 'block';
+                tableBody.innerHTML = ''; // Limpiar la tabla
 
+                // Crear filas dinámicamente basadas en el número de servidores
                 for (let i = 1; i <= vmCount; i++) {
                     const row = document.createElement('tr');
-                    
+
                     row.innerHTML = `
-                        <td class="border px-6 py-4">Servidor ${i}</td>
-                        <td class="border px-6 py-4"><input type="text" name="vmName${i}" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></td>
-                        <td class="border px-6 py-4"><input type="number" name="cores${i}" min="1" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></td>
-                        <td class="border px-6 py-4"><input type="number" name="memory${i}" min="1" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></td>
-                        <td class="border px-6 py-4"><input type="text" name="os${i}" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"></td>
+                        <td class="border px-4 py-2">Servidor ${i}</td>
+                        <td class="border px-4 py-2">
+                            <select name="os${i}" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <option value="">Seleccione SO</option>
+                                <option value="Windows">Windows Server</option>
+                                <option value="Linux">Linux</option>
+                            </select>
+                        </td>
+                        <td class="border px-4 py-2">
+                            <input type="number" name="storage${i}" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </td>
+                        <td class="border px-4 py-2">
+                            <input type="number" name="memory${i}" min="1" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </td>
                     `;
 
-                    dynamicTable.appendChild(row);
+                    tableBody.appendChild(row);
                 }
             } else {
-                dynamicTableContainer.classList.add('hidden');
+                dynamicTable.style.display = 'none';
+                tableBody.innerHTML = ''; // Limpiar la tabla si la cantidad de servidores es 0
             }
         });
+
+        // Resto del código para manejar el formulario, mostrar el modal, y descargar el script...
+
+        document.getElementById('vmForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const vmSpec = Object.fromEntries(formData.entries());
+            
+            const powershellScript = generatePowerShellScript(vmSpec);
+            
+            // Mostrar el script en el modal
+            document.getElementById('modalScriptContent').textContent = powershellScript;
+            document.getElementById('scriptModal').classList.remove('hidden');
+
+            // Mostrar la sección de descarga
+            document.getElementById('downloadSection').classList.remove('hidden');
+        });
+
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('scriptModal').classList.add('hidden');
+        });
+
+        document.getElementById('downloadButton').addEventListener('click', function() {
+            const scriptContent = document.getElementById('modalScriptContent').textContent;
+            const blob = new Blob([scriptContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Create-AzureVMwareVMs.ps1';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
+        function generatePowerShellScript(vmSpec) {
+            let script = `# Script para crear ${vmSpec.vmCount} VM(s) en Azure VMware Services\n`;
+
+            for (let i = 1; i <= vmSpec.vmCount; i++) {
+                script += `\n# Configuración del Servidor ${i}\n`;
+                script += `$vmName${i} = "Servidor${i}"\n`;
+                script += `$os${i} = "${vmSpec[`os${i}`]}"\n`;
+                script += `$storage${i} = ${vmSpec[`storage${i}`]}GB\n`;
+                script += `$memory${i} = ${vmSpec[`memory${i}`]}GB\n`;
+                // Aquí puedes añadir más configuraciones necesarias
+            }
+
+            script += `\n# Añadir aquí el código para aprovisionar las VMs en Azure VMware Services\n`;
+            return script;
+        }
     </script>
 </body>
 </html>
