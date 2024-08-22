@@ -102,3 +102,71 @@ document.addEventListener('DOMContentLoaded', () => {
     scriptModal.classList.add('hidden');
   });
 });
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const vmCountInput = document.getElementById('vm-count');
+  const serverFieldsContainer = document.getElementById('server-fields');
+  const generateButtons = document.getElementById('script-buttons');
+
+  vmCountInput.addEventListener('change', function() {
+      const vmCount = parseInt(vmCountInput.value);
+      serverFieldsContainer.innerHTML = ''; // Limpiar campos anteriores
+
+      if (vmCount > 0) {
+          for (let i = 0; i < vmCount; i++) {
+              // Crear contenedor para cada servidor
+              const serverFieldSet = document.createElement('fieldset');
+              serverFieldSet.className = 'server-fieldset';
+              
+              const legend = document.createElement('legend');
+              legend.textContent = `Servidor ${i + 1}`;
+              serverFieldSet.appendChild(legend);
+
+              // Campo Sistema Operativo
+              const osLabel = document.createElement('label');
+              osLabel.setAttribute('for', `os-${i}`);
+              osLabel.textContent = 'Sistema Operativo:';
+              serverFieldSet.appendChild(osLabel);
+
+              const osInput = document.createElement('input');
+              osInput.type = 'text';
+              osInput.id = `os-${i}`;
+              osInput.name = `os-${i}`;
+              osInput.required = true;
+              serverFieldSet.appendChild(osInput);
+
+              // Campo Capacidad
+              const capacityLabel = document.createElement('label');
+              capacityLabel.setAttribute('for', `capacity-${i}`);
+              capacityLabel.textContent = 'Capacidad:';
+              serverFieldSet.appendChild(capacityLabel);
+
+              const capacityInput = document.createElement('input');
+              capacityInput.type = 'text';
+              capacityInput.id = `capacity-${i}`;
+              capacityInput.name = `capacity-${i}`;
+              capacityInput.required = true;
+              serverFieldSet.appendChild(capacityInput);
+
+              // Campo Memoria
+              const memoryLabel = document.createElement('label');
+              memoryLabel.setAttribute('for', `memory-${i}`);
+              memoryLabel.textContent = 'Memoria:';
+              serverFieldSet.appendChild(memoryLabel);
+
+              const memoryInput = document.createElement('input');
+              memoryInput.type = 'text';
+              memoryInput.id = `memory-${i}`;
+              memoryInput.name = `memory-${i}`;
+              memoryInput.required = true;
+              serverFieldSet.appendChild(memoryInput);
+
+              serverFieldsContainer.appendChild(serverFieldSet);
+          }
+          generateButtons.classList.remove('hidden');
+      } else {
+          generateButtons.classList.add('hidden');
+      }
+  });
+});
