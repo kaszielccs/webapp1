@@ -52,47 +52,42 @@ input[type="submit"]:hover {
     margin-bottom: 1rem;
 }
 
-/* Ajustes adicionales para la tabla dinámica */
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-}
-
-.dynamic-table input[type="text"], 
-.dynamic-table input[type="number"] {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 5px;
-    font-size: 14px;
-}
-
-.dynamic-table td, .dynamic-table th {
-    padding: 5px;
-    text-align: left;
-    white-space: nowrap;
-}
-
-.dynamic-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.dynamic-table th {
-    background-color: #f2f2f2;
-}
-
-.dynamic-table td {
+.table-container {
+    max-width: 80%;
+    margin: 20px;
     border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff;
 }
 
-@media (max-width: 768px) {
-    .dynamic-table td, .dynamic-table th {
-        font-size: 12px;
-        padding: 4px;
-    }
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
 
-    .dynamic-table input[type="text"], 
-    .dynamic-table input[type="number"] {
-        font-size: 12px;
-    }
+th, td {
+    text-align: center;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #e0e0e0;
+    font-weight: bold;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+table, th, td {
+    border: none;
+}
+
+table {
+    border-spacing: 0;
+    border-collapse: separate;
 }

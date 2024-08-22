@@ -166,52 +166,75 @@
       });
 
       function updateServerFields(count) {
-        if (count <= 0) {
-          serverFieldsContainer.innerHTML = '';
-          return;
-        }
-        
-        let rowsHtml = `
-          <div class="table-responsive">
-            <table class="dynamic-table">
-              <thead>
-                <tr>
-                  <th>Nombre del Servidor</th>
-                  <th>Sistema Operativo</th>
-                  <th>Almacenamiento (GB)</th>
-                  <th>Memoria RAM (GB)</th>
-                  <th>Cantidad de Núcleos</th>
-                </tr>
-              </thead>
-              <tbody>
-        `;
-
+        serverFieldsContainer.innerHTML = `
+		<div class="table-container">
+		<table>
+		<thead>
+       <tr>
+				<label>Nombre del Servidor:</label>
+			 </tr>
+			 <tr>
+				<label>Sistema Operativo: </label>
+			 </tr>
+			 <tr>
+				<label>Almacenamiento (GB):</label>
+			 </tr>
+			 <tr>
+				<label>Memoria RAM (GB):</label>
+			 </tr>
+			 <tr>
+				<label>Cantidad de Núcleos:</label>
+			 </tr>
+		</thead>
+		<tbody>`
         for (let i = 1; i <= count; i++) {
-          rowsHtml += `
-            <tr>
-              <td><input type="text" id="server-name-${i}" placeholder="vm-${i}"></td>
-              <td>
-                <select id="os-type-${i}" required>
-                  <option value="">Seleccionar</option>
-                  <option value="Windows">Windows</option>
-                  <option value="Linux">Linux</option>
-                </select>
-              </td>
-              <td><input type="number" id="storage-size-${i}" placeholder="Tamaño del Almacenamiento" required></td>
-              <td><input type="number" id="ram-size-${i}" placeholder="Tamaño de la RAM" required></td>
-              <td><input type="number" id="cores-${i}" placeholder="Cantidad de Núcleos"></td>
-            </tr>
-          `;
+          serverFieldsContainer.innerHTML += `
+			<div class="server-row">
+          <tr>
+          <td>
+                  <div>
+                    <!%--<label for="server-name-${i}">Nombre del Servidor:</label>-->
+                    <input type="text" id="server-name-${i}" name="server-name-${i}" class="border rounded px-3 py-2 w-full">
+                  </div>
+          </td>
+          <td>
+                  <div>
+                    <!%--<label for="os-type-${i}">Sistema Operativo:</label>-->
+                    <select id="os-type-${i}" name="os-type-${i}" class="border rounded px-3 py-2 w-full">
+                      <option value="">Seleccionar SO</option>
+                      <option value="windows">Windows Server</option>
+                      <option value="linux">Linux</option>
+                    </select>
+                  </div>
+          </td>
+          <td>
+                  <div>
+                    <!%--<label for="storage-size-${i}">Almacenamiento (GB):</label>-->
+                    <input type="number" id="storage-size-${i}" name="storage-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
+                  </div>
+          </td>
+          <td>
+                  <div>
+                    <!%--<label for="ram-size-${i}">Memoria RAM (GB):</label>-->
+                    <input type="number" id="ram-size-${i}" name="ram-size-${i}" class="border rounded px-3 py-2 w-full" min="1">
+                  </div>
+          </td>
+          <td>
+                  <div>
+                    <!%--<label for="cores-${i}">Cantidad de Núcleos:</label>-->
+                    <input type="number" id="cores-${i}" name="cores-${i}" class="border rounded px-3 py-2 w-full" min="1">
+                  </div>
+          </td>
+          </tr>
+        </div>
+          `
         }
-
-        rowsHtml += `
-              </tbody>
-            </table>
-          </div>
-        `;
-
-        serverFieldsContainer.innerHTML = rowsHtml;
-      }
+    serverFieldsContainer.innerHTML += `
+		</tbody>
+    </table>
+    </div>
+      `
+    }
 
       function generateTerraformConfig(count, configs, additionalSoftware) {
         let config = `# Script de Provisión de VM en Azure (Terraform)\n\n`;
